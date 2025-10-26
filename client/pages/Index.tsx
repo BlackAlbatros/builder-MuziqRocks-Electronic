@@ -81,10 +81,14 @@ export default function Index() {
       const mapKeyToDir = (ev: KeyboardEvent) => {
         const k = (ev.key || "").toString();
         const code = (ev as any).keyCode || (ev as any).which || 0;
-        if (["ArrowRight", "Right"].includes(k) || code === 22) return { x: 1, y: 0 };
-        if (["ArrowLeft", "Left"].includes(k) || code === 21) return { x: -1, y: 0 };
-        if (["ArrowDown", "Down"].includes(k) || code === 20) return { x: 0, y: 1 };
-        if (["ArrowUp", "Up"].includes(k) || code === 19) return { x: 0, y: -1 };
+        if (["ArrowRight", "Right"].includes(k) || code === 22)
+          return { x: 1, y: 0 };
+        if (["ArrowLeft", "Left"].includes(k) || code === 21)
+          return { x: -1, y: 0 };
+        if (["ArrowDown", "Down"].includes(k) || code === 20)
+          return { x: 0, y: 1 };
+        if (["ArrowUp", "Up"].includes(k) || code === 19)
+          return { x: 0, y: -1 };
         return null;
       };
 
