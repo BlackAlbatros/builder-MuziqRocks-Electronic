@@ -45,9 +45,6 @@ dependencies {
         implementation files('libs/engage-ads-sdk.jar')
     } else if (file('libs/engage-ads-sdk-v1.1.0-alpha.jar').exists()) {
         implementation files('libs/engage-ads-sdk-v1.1.0-alpha.jar')
-    } else {
-        // Fallback to remote artifact; ensure the correct repository (jitpack or maven) hosts it
-        implementation 'com.engage.engageadssdk:engage-ads-sdk:v1.1.0-alpha'
     }
 }
 
