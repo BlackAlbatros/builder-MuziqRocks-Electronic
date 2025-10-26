@@ -185,6 +185,19 @@ export default function Index() {
           </section>
         )}
 
+        {!q && latest.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between rounded-md bg-black/30 px-3 py-2">
+              <h2 className="text-lg md:text-xl font-bold">Latest</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {latest.map((item) => (
+                <VideoCard key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {!q &&
           categories.map(({ name, slug, items }) => (
             <section key={slug} className="space-y-4">
