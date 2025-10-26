@@ -3,6 +3,7 @@ import { Banner } from "@/components/Banner";
 import { Link, useSearchParams } from "react-router-dom";
 import { parseDate, slugify, formatDuration } from "@/lib/utils";
 import { useFeedQuery } from "@/hooks/use-feed-query";
+import { useEffect } from "react";
 
 export default function Index() {
   const { data, isLoading, error } = useFeedQuery();
@@ -40,6 +41,51 @@ export default function Index() {
         parseDate(b.content?.dateAdded) - parseDate(a.content?.dateAdded),
     ),
   }));
+
+  // Focus first video on load and enable D-pad style navigation
+  useEffect(() => {
+    const focusFirst = () => {
+      const first = document.querySelector<HTMLAnchorElement>(
+        '[data-video-card]'
+      );
+      if (first) first.focus();
+    };
+    const t = setTimeout(focusFirst, 0);
+    return () => clearTimeout(t);
+  }, [q, data]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const cards = Array.from(
+        document.querySelectorAll<HTMLAnchorElement>('[data-video-card]')
+      );
+      if (!cards.length) return;
+      const active = document.activeElement as HTMLElement | null;
+      const idx = cards.indexOf(active as HTMLAnchorElement);
+
+      const ok = ["Enter", "OK", "Select"].includes(e.key);
+      if (ok && active && active.matches('[data-video-card]')) {
+        e.preventDefault();
+        (active as HTMLAnchorElement).click();
+        return;
+      }
+
+      const nextKey =
+        e.key === "ArrowRight" || e.key === "Right" || e.key === "ArrowDown" || e.key === "Down";
+      const prevKey =
+        e.key === "ArrowLeft" || e.key === "Left" || e.key === "ArrowUp" || e.key === "Up";
+
+      if (!nextKey && !prevKey) return;
+
+      e.preventDefault();
+      let next = idx;
+      if (nextKey) next = Math.min(idx >= 0 ? idx + 1 : 0, cards.length - 1);
+      if (prevKey) next = Math.max(idx >= 0 ? idx - 1 : 0, 0);
+      cards[next]?.focus();
+    };
+    document.addEventListener('keydown', handler);
+    return () => document.removeEventListener('keydown', handler);
+  }, [q, data]);
 
   return (
     <main className="min-h-screen bg-gradient-to-b from-background via-background to-black/20">
@@ -111,7 +157,10 @@ function VideoCard({ item }: { item: FeedItem }) {
   return (
     <Link
       to={watchHref}
-      className="group block overflow-hidden rounded-xl border bg-card hover:shadow-lg transition relative"
+      data-video-card
+      tabIndex={0}
+      className="group block overflow-hidden rounded-xl border bg-card hover:shadow-lg transition relative outline-none focus:ring-4 focus:ring-primary"
+      aria-label={`Open ${item.title}`}
     >
       <img
         src={item.thumbnail}
