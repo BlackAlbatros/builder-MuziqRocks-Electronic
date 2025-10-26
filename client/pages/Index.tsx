@@ -133,7 +133,22 @@ export default function Index() {
         return { c, score };
       });
       scored.sort((a, b) => b.score - a.score);
-      const best = scored[0]?.c?.el as HTMLElement | undefined;
+      let best = scored[0]?.c?.el as HTMLElement | undefined;
+
+      // Fallback: if no spatial candidate, move in DOM order
+      if (!best) {
+        const idx = els.indexOf(active);
+        if (dir.y === 1) {
+          best = els[Math.min(idx + 1, els.length - 1)];
+        } else if (dir.y === -1) {
+          best = els[Math.max(idx - 1, 0)];
+        } else if (dir.x === 1) {
+          best = els[Math.min(idx + 1, els.length - 1)];
+        } else if (dir.x === -1) {
+          best = els[Math.max(idx - 1, 0)];
+        }
+      }
+
       if (best) {
         best.focus();
         // ensure focused element is visible (centered)
