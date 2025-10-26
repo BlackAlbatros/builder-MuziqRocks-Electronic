@@ -45,7 +45,10 @@ export default function Index() {
   // Latest: top 3 videos across the feed sorted by dateAdded (newest first)
   const latest: FeedItem[] = (data?.shortFormVideos ?? [])
     .slice()
-    .sort((a, b) => parseDate(b.content?.dateAdded) - parseDate(a.content?.dateAdded))
+    .sort(
+      (a, b) =>
+        parseDate(b.content?.dateAdded) - parseDate(a.content?.dateAdded),
+    )
     .slice(0, 3);
 
   // Focus first video on load and enable D-pad style navigation
