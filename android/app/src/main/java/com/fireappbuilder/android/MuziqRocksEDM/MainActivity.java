@@ -24,7 +24,7 @@ public class MainActivity extends BridgeActivity {
         try { builderClass.getMethod("setPublisherId", String.class).invoke(builder, "a8ce40dc"); } catch (NoSuchMethodException ignored) {}
         try { builderClass.getMethod("setChannelId", String.class).invoke(builder, "62570352"); } catch (NoSuchMethodException ignored) {}
         try { builderClass.getMethod("setContext", android.content.Context.class).invoke(builder, getApplicationContext()); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setIsDebug", boolean.class).invoke(builder, false); } catch (NoSuchMethodException ignored) {}
+        try { builderClass.getMethod("setIsDebug", boolean.class).invoke(builder, true); } catch (NoSuchMethodException ignored) {}
         try { builderClass.getMethod("setIsAutoPlay", boolean.class).invoke(builder, true); } catch (NoSuchMethodException ignored) {}
       } catch (Exception ex) {
         // ignore builder set failures
