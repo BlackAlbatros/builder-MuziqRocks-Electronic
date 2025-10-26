@@ -2,8 +2,8 @@ import React from "react";
 
 export function Footer() {
   return (
-    <footer className="fixed bottom-0 left-0 right-0 bg-yellow-400 text-black z-50">
-      <div className="container mx-auto px-4 py-3 flex items-center justify-center gap-6">
+    <footer className="mt-10 bg-yellow-400 text-black">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-center gap-6">
         <a
           href="https://music.apple.com/md/artist/muziqrocks/1824742571"
           target="_blank"
