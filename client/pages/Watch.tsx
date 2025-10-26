@@ -1,4 +1,3 @@
-import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFeedQuery } from "@/hooks/use-feed-query";
 import { Capacitor } from "@capacitor/core";
