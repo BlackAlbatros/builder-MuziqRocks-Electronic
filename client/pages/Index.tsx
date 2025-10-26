@@ -45,9 +45,8 @@ export default function Index() {
   // Focus first video on load and enable D-pad style navigation
   useEffect(() => {
     const focusFirst = () => {
-      const first = document.querySelector<HTMLAnchorElement>(
-        '[data-video-card]'
-      );
+      const first =
+        document.querySelector<HTMLAnchorElement>("[data-video-card]");
       if (first) first.focus();
     };
     const t = setTimeout(focusFirst, 0);
@@ -57,23 +56,29 @@ export default function Index() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const cards = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>('[data-video-card]')
+        document.querySelectorAll<HTMLAnchorElement>("[data-video-card]"),
       );
       if (!cards.length) return;
       const active = document.activeElement as HTMLElement | null;
       const idx = cards.indexOf(active as HTMLAnchorElement);
 
       const ok = ["Enter", "OK", "Select"].includes(e.key);
-      if (ok && active && active.matches('[data-video-card]')) {
+      if (ok && active && active.matches("[data-video-card]")) {
         e.preventDefault();
         (active as HTMLAnchorElement).click();
         return;
       }
 
       const nextKey =
-        e.key === "ArrowRight" || e.key === "Right" || e.key === "ArrowDown" || e.key === "Down";
+        e.key === "ArrowRight" ||
+        e.key === "Right" ||
+        e.key === "ArrowDown" ||
+        e.key === "Down";
       const prevKey =
-        e.key === "ArrowLeft" || e.key === "Left" || e.key === "ArrowUp" || e.key === "Up";
+        e.key === "ArrowLeft" ||
+        e.key === "Left" ||
+        e.key === "ArrowUp" ||
+        e.key === "Up";
 
       if (!nextKey && !prevKey) return;
 
@@ -83,8 +88,8 @@ export default function Index() {
       if (prevKey) next = Math.max(idx >= 0 ? idx - 1 : 0, 0);
       cards[next]?.focus();
     };
-    document.addEventListener('keydown', handler);
-    return () => document.removeEventListener('keydown', handler);
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
   }, [q, data]);
 
   return (
