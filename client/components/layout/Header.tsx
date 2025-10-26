@@ -1,5 +1,6 @@
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 
 const LOGO_URL =
   "https://cdn.builder.io/api/v1/image/assets%2F86cecfe73f914f2393fc7c63dbac01cd%2Fc7a955aed0934183a2ab1db1191f7447?format=webp&width=800";
@@ -8,10 +9,29 @@ export function Header() {
   const [params] = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
   const navigate = useNavigate();
+  const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
     setQ(params.get("q") ?? "");
   }, [params]);
+
+  // Hide header on scroll down, show on scroll up or at top
+  useEffect(() => {
+    let lastY = window.scrollY;
+    const onScroll = () => {
+      const y = window.scrollY;
+      const delta = y - lastY;
+      lastY = y;
+      if (y <= 8) {
+        setHidden(false);
+        return;
+      }
+      if (delta > 4 && y > 48) setHidden(true);
+      else if (delta < -4) setHidden(false);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
   function applySearch(value: string) {
     setQ(value);
@@ -22,7 +42,9 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70 border-b">
+    <header
+      className={`sticky top-0 z-40 border-b transition-transform duration-300 backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70 ${hidden ? "-translate-y-full" : "translate-y-0"}`}
+    >
       <div className="container mx-auto flex items-center gap-3 py-3">
         <div className="flex items-center">
           <img
