@@ -61,7 +61,7 @@ export default function WatchPage() {
       vid.removeEventListener("pause", onPause);
       vid.removeEventListener("play", onPlay);
     };
-  }, [videoRef.current]);
+  }, [videoId]);
 
   const { data, isLoading, error } = useFeedQuery();
 
