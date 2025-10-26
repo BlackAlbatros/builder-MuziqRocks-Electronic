@@ -119,6 +119,7 @@ export default function WatchPage() {
       {source ? (
         <>
           <video
+            ref={videoRef}
             key={video.id}
             controls
             autoPlay
@@ -129,32 +130,27 @@ export default function WatchPage() {
           >
             Your browser does not support HTML5 video.
           </video>
-          <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 bg-gradient-to-t from-black to-transparent p-4">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="rounded-md bg-white/20 px-3 py-2 text-sm font-medium text-white hover:bg-white/30"
-            >
-              ← Back
-            </button>
-            <Link
-              to="/"
-              className="rounded-md bg-white/20 px-3 py-2 text-sm font-medium text-white hover:bg-white/30"
-            >
-              Home
-            </Link>
+          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center p-4">
+            {showHome && (
+              <Link
+                to="/"
+                onClick={() => setShowHome(false)}
+                className="rounded-md bg-white/20 px-6 py-3 text-sm font-medium text-white hover:bg-white/30"
+              >
+                Home
+              </Link>
+            )}
           </div>
         </>
       ) : (
         <div className="flex flex-col items-center justify-center space-y-4">
           <p className="text-white">No video source available for this item.</p>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="rounded-md bg-white/20 px-3 py-2 text-sm font-medium text-white hover:bg-white/30"
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
-            ← Back
-          </button>
+            Home
+          </Link>
         </div>
       )}
     </div>
