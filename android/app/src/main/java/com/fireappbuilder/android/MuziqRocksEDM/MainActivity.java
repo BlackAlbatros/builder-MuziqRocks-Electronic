@@ -21,14 +21,14 @@ public class MainActivity extends BridgeActivity {
 
       try {
         // set builder fields/methods (best-effort, method names may vary)
-        try { builderClass.getMethod("setIsGdprApproved", boolean.class).invoke(builder, true); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setPublisherId", String.class).invoke(builder, "a8ce40dc"); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setChannelId", String.class).invoke(builder, "62570352"); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setContext", android.content.Context.class).invoke(builder, getApplicationContext()); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setIsDebug", boolean.class).invoke(builder, true); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setIsAutoPlay", boolean.class).invoke(builder, true); } catch (NoSuchMethodException ignored) {}
+        try { builderClass.getMethod("setIsGdprApproved", boolean.class).invoke(builder, true); Log.i("EMAds", "setIsGdprApproved=true"); } catch (NoSuchMethodException ignored) {}
+        try { builderClass.getMethod("setPublisherId", String.class).invoke(builder, "a8ce40dc"); Log.i("EMAds", "publisherId=a8ce40dc"); } catch (NoSuchMethodException ignored) {}
+        try { builderClass.getMethod("setChannelId", String.class).invoke(builder, "62570352"); Log.i("EMAds", "channelId=62570352"); } catch (NoSuchMethodException ignored) {}
+        try { builderClass.getMethod("setContext", android.content.Context.class).invoke(builder, getApplicationContext()); Log.i("EMAds", "context set"); } catch (NoSuchMethodException ignored) {}
+        try { builderClass.getMethod("setIsDebug", boolean.class).invoke(builder, true); Log.i("EMAds", "setIsDebug=true"); } catch (NoSuchMethodException ignored) { Log.i("EMAds", "setIsDebug method not found"); }
+        try { builderClass.getMethod("setIsAutoPlay", boolean.class).invoke(builder, true); Log.i("EMAds", "setIsAutoPlay=true"); } catch (NoSuchMethodException ignored) {}
       } catch (Exception ex) {
-        // ignore builder set failures
+        Log.i("EMAds", "builder set methods failed: " + ex.getMessage());
       }
 
       // build input
