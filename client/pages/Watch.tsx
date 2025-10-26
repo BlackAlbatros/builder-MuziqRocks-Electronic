@@ -2,22 +2,27 @@ import { useEffect } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFeedQuery } from "@/hooks/use-feed-query";
 import { Capacitor } from "@capacitor/core";
+import { useEffect, useRef, useState } from "react";
 
 export default function WatchPage() {
   const navigate = useNavigate();
   const params = useParams<{ id?: string }>();
   const videoId = params.id ? decodeURIComponent(params.id) : "";
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [showHome, setShowHome] = useState(false);
 
   useEffect(() => {
+    // Intercept native back button: show Home overlay instead of navigating away immediately
     const handleBackButton = async () => {
       if (Capacitor?.isNativePlatform?.()) {
         try {
           const core = await import("@capacitor/core");
           const AppClass = (core as any).App;
           if (AppClass?.addListener) {
-            const listener = AppClass.addListener("backButton", () => {
-              navigate(-1);
-              listener?.remove?.();
+            const listener = AppClass.addListener("backButton", (ev: any) => {
+              ev?.preventDefault?.();
+              setShowHome(true);
+              // do not remove listener; keep intercepting while on watch page
             });
           }
         } catch (err) {
@@ -26,7 +31,37 @@ export default function WatchPage() {
       }
     };
     handleBackButton();
-  }, [navigate]);
+  }, []);
+
+  useEffect(() => {
+    // Keyboard / remote handlers: Enter/Select or Back/Escape should show Home overlay
+    const onKey = (e: KeyboardEvent) => {
+      const showKeys = ["Enter", "OK", "Select", " "]; // include space
+      const backKeys = ["Backspace", "Escape", "BrowserBack"];
+      if (showKeys.includes(e.key)) {
+        setShowHome(true);
+      }
+      if (backKeys.includes(e.key)) {
+        e.preventDefault();
+        setShowHome(true);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onPause = () => setShowHome(true);
+    const onPlay = () => setShowHome(false);
+    vid.addEventListener("pause", onPause);
+    vid.addEventListener("play", onPlay);
+    return () => {
+      vid.removeEventListener("pause", onPause);
+      vid.removeEventListener("play", onPlay);
+    };
+  }, [videoRef.current]);
 
   const { data, isLoading, error } = useFeedQuery();
 
