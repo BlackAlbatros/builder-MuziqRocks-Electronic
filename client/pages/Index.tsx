@@ -77,27 +77,35 @@ export default function Index() {
         return;
       }
 
-      const dir = (() => {
-        if (["ArrowRight", "Right"].includes(e.key)) return { x: 1, y: 0 };
-        if (["ArrowLeft", "Left"].includes(e.key)) return { x: -1, y: 0 };
-        if (["ArrowDown", "Down"].includes(e.key)) return { x: 0, y: 1 };
-        if (["ArrowUp", "Up"].includes(e.key)) return { x: 0, y: -1 };
+      // Support both KeyboardEvent.key and numeric keyCode values coming from TV remotes
+      const mapKeyToDir = (ev: KeyboardEvent) => {
+        const k = (ev.key || "").toString();
+        const code = (ev as any).keyCode || (ev as any).which || 0;
+        if (["ArrowRight", "Right"].includes(k) || code === 22) return { x: 1, y: 0 };
+        if (["ArrowLeft", "Left"].includes(k) || code === 21) return { x: -1, y: 0 };
+        if (["ArrowDown", "Down"].includes(k) || code === 20) return { x: 0, y: 1 };
+        if (["ArrowUp", "Up"].includes(k) || code === 19) return { x: 0, y: -1 };
         return null;
-      })();
+      };
+
+      const dir = mapKeyToDir(e);
       if (!dir) return;
 
       e.preventDefault();
-      const rects = els.map((el) => ({ el, r: el.getBoundingClientRect(), cx: el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2, cy: el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2 }));
+      const rects = els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { el, r, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+      });
       const activeRect = active.getBoundingClientRect();
       const ax = activeRect.left + activeRect.width / 2;
       const ay = activeRect.top + activeRect.height / 2;
 
       // Filter candidates in the direction
       const candidates = rects.filter(({ r, cx, cy }) => {
-        if (dir.x === 1) return cx > ax - 1; // right
-        if (dir.x === -1) return cx < ax + 1; // left
-        if (dir.y === 1) return cy > ay - 1; // down
-        if (dir.y === -1) return cy < ay + 1; // up
+        if (dir.x === 1) return cx > ax + 4; // right
+        if (dir.x === -1) return cx < ax - 4; // left
+        if (dir.y === 1) return cy > ay + 4; // down
+        if (dir.y === -1) return cy < ay - 4; // up
         return false;
       });
       if (!candidates.length) return;
@@ -112,8 +120,16 @@ export default function Index() {
         return { c, score };
       });
       scored.sort((a, b) => b.score - a.score);
-      const best = scored[0]?.c?.el;
-      if (best) best.focus();
+      const best = scored[0]?.c?.el as HTMLElement | undefined;
+      if (best) {
+        best.focus();
+        // ensure focused element is visible (centered)
+        try {
+          best.scrollIntoView({ block: "center", behavior: "smooth" });
+        } catch (err) {
+          best.scrollIntoView();
+        }
+      }
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
