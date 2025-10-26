@@ -55,38 +55,65 @@ export default function Index() {
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const cards = Array.from(
-        document.querySelectorAll<HTMLAnchorElement>("[data-video-card]"),
-      );
-      if (!cards.length) return;
-      const active = document.activeElement as HTMLElement | null;
-      const idx = cards.indexOf(active as HTMLAnchorElement);
+      const container = document.querySelector<HTMLDivElement>(".container");
+      if (!container) return;
+      // collect focusable elements inside container (links, buttons, cards)
+      const els = Array.from(
+        container.querySelectorAll<HTMLElement>(
+          "a[href], button, [data-video-card], [tabindex]:not([tabindex='-1'])",
+        ),
+      ).filter((el) => {
+        const style = window.getComputedStyle(el);
+        return style.display !== "none" && style.visibility !== "hidden";
+      });
+      if (!els.length) return;
+
+      const active = (document.activeElement as HTMLElement) || els[0];
 
       const ok = ["Enter", "OK", "Select"].includes(e.key);
-      if (ok && active && active.matches("[data-video-card]")) {
+      if (ok && active) {
         e.preventDefault();
-        (active as HTMLAnchorElement).click();
+        (active as HTMLAnchorElement | HTMLElement).click?.();
         return;
       }
 
-      const nextKey =
-        e.key === "ArrowRight" ||
-        e.key === "Right" ||
-        e.key === "ArrowDown" ||
-        e.key === "Down";
-      const prevKey =
-        e.key === "ArrowLeft" ||
-        e.key === "Left" ||
-        e.key === "ArrowUp" ||
-        e.key === "Up";
-
-      if (!nextKey && !prevKey) return;
+      const dir = (() => {
+        if (["ArrowRight", "Right"].includes(e.key)) return { x: 1, y: 0 };
+        if (["ArrowLeft", "Left"].includes(e.key)) return { x: -1, y: 0 };
+        if (["ArrowDown", "Down"].includes(e.key)) return { x: 0, y: 1 };
+        if (["ArrowUp", "Up"].includes(e.key)) return { x: 0, y: -1 };
+        return null;
+      })();
+      if (!dir) return;
 
       e.preventDefault();
-      let next = idx;
-      if (nextKey) next = Math.min(idx >= 0 ? idx + 1 : 0, cards.length - 1);
-      if (prevKey) next = Math.max(idx >= 0 ? idx - 1 : 0, 0);
-      cards[next]?.focus();
+      const rects = els.map((el) => ({ el, r: el.getBoundingClientRect(), cx: el.getBoundingClientRect().left + el.getBoundingClientRect().width / 2, cy: el.getBoundingClientRect().top + el.getBoundingClientRect().height / 2 }));
+      const activeRect = active.getBoundingClientRect();
+      const ax = activeRect.left + activeRect.width / 2;
+      const ay = activeRect.top + activeRect.height / 2;
+
+      // Filter candidates in the direction
+      const candidates = rects.filter(({ r, cx, cy }) => {
+        if (dir.x === 1) return cx > ax - 1; // right
+        if (dir.x === -1) return cx < ax + 1; // left
+        if (dir.y === 1) return cy > ay - 1; // down
+        if (dir.y === -1) return cy < ay + 1; // up
+        return false;
+      });
+      if (!candidates.length) return;
+
+      // score by angular/distance preference
+      const scored = candidates.map((c) => {
+        const dx = c.cx - ax;
+        const dy = c.cy - ay;
+        const dot = dx * dir.x + dy * dir.y;
+        const dist = Math.hypot(dx, dy);
+        const score = dot / (dist + 1e-6) - dist * 0.01;
+        return { c, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      const best = scored[0]?.c?.el;
+      if (best) best.focus();
     };
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
