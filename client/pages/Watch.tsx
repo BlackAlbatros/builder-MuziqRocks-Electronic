@@ -36,7 +36,11 @@ export default function WatchPage() {
     // Show an initial debug toast on native platforms so developers know native toasts will appear
     if (Capacitor?.isNativePlatform?.()) {
       try {
-        showToast({ title: "Ad SDK (native)", description: "Native SDK will display debug toasts when ads initialize and load." });
+        showToast({
+          title: "Ad SDK (native)",
+          description:
+            "Native SDK will display debug toasts when ads initialize and load.",
+        });
       } catch (e) {
         console.warn("Failed to show native debug toast", e);
       }
@@ -48,7 +52,8 @@ export default function WatchPage() {
         const detail = (e as CustomEvent)?.detail;
         if (detail && typeof detail === "object") {
           const title = detail.title || "EMAds";
-          const description = detail.message || detail.description || JSON.stringify(detail);
+          const description =
+            detail.message || detail.description || JSON.stringify(detail);
           showToast({ title, description });
         }
       } catch (err) {
@@ -89,7 +94,10 @@ export default function WatchPage() {
         return;
       }
 
-      if (mediaKeys.includes(code) || ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)) {
+      if (
+        mediaKeys.includes(code) ||
+        ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)
+      ) {
         e.preventDefault();
         if (vid) {
           if (vid.paused) vid.play();
