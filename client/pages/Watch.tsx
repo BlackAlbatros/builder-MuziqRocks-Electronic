@@ -33,15 +33,23 @@ export default function WatchPage() {
   }, []);
 
   useEffect(() => {
-    // Keyboard / remote handlers: Enter/Select or Back/Escape should show Home overlay
+    // Keyboard / remote handlers: Enter/Select, Pause, or Back/Escape should show Home overlay
     const onKey = (e: KeyboardEvent) => {
       const showKeys = ["Enter", "OK", "Select", " "]; // include space
       const backKeys = ["Backspace", "Escape", "BrowserBack"];
+      const code = (e as any).keyCode || (e as any).which || 0;
+      // Media play/pause (remote) codes: 85 (KEYCODE_MEDIA_PLAY_PAUSE), 127 (KEYCODE_MEDIA_PAUSE), 126 (play)
+      const mediaKeys = [85, 127, 126];
+
       if (showKeys.includes(e.key)) {
         setShowHome(true);
       }
       if (backKeys.includes(e.key)) {
         e.preventDefault();
+        setShowHome(true);
+      }
+      if (mediaKeys.includes(code) || ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)) {
+        // toggle show when pause/play pressed
         setShowHome(true);
       }
     };
