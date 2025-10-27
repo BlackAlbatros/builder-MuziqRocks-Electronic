@@ -33,12 +33,12 @@ export default function CategoryPage() {
         <h2 className="text-xl md:text-2xl font-bold capitalize">
           {slug.replace(/-/g, " ")}
         </h2>
-        <Link
+        <RouterLink
           to="/"
           className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:opacity-90"
         >
           ← Back
-        </Link>
+        </RouterLink>
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
         {items.map((item) => (
@@ -52,7 +52,7 @@ export default function CategoryPage() {
 function VideoCard({ item }: { item: FeedItem }) {
   const watchHref = `/watch/${encodeURIComponent(item.id)}`;
   return (
-    <Link
+    <RouterLink
       to={watchHref}
       data-video-card
       tabIndex={0}
@@ -69,6 +69,6 @@ function VideoCard({ item }: { item: FeedItem }) {
       <div className="p-3">
         <h3 className="line-clamp-2 font-medium">{item.title}</h3>
       </div>
-    </Link>
+    </RouterLink>
   );
 }
