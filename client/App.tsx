@@ -24,6 +24,8 @@ const App = () => (
       <BrowserRouter>
         <Splash />
         <Header />
+        {/* spacer to account for fixed header height */}
+        <div className="h-16" />
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/category/:slug" element={<CategoryPage />} />
