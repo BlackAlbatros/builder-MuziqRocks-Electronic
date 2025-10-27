@@ -13,7 +13,7 @@ export default function CategoryPage() {
   useEffect(() => {
     setTimeout(() => {
       window.scrollTo({ top: 0 });
-      const first = document.querySelector<HTMLElement>('[data-video-card]');
+      const first = document.querySelector<HTMLElement>("[data-video-card]");
       if (first) first.focus();
     }, 0);
   }, [slug]);

@@ -48,7 +48,10 @@ export default function WatchPage() {
         e.preventDefault();
         setShowHome(true);
       }
-      if (mediaKeys.includes(code) || ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)) {
+      if (
+        mediaKeys.includes(code) ||
+        ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)
+      ) {
         // toggle show when pause/play pressed
         setShowHome(true);
       }
