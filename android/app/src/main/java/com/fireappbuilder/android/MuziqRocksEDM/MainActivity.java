@@ -4,93 +4,115 @@ import android.os.Bundle;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.view.Gravity;
+import android.webkit.WebView;
 
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
 
+// Direct Engage SDK imports
+import com.engage.engageadssdk.module.EMAdsModule;
+import com.engage.engageadssdk.module.EMAdsModuleInputBuilder;
+import com.engage.engageadssdk.ui.EMAdView;
+import com.engage.engageadssdk.EMVideoPlayerListener;
+import com.engage.engageadssdk.ui.EmClientContentController;
+
 public class MainActivity extends BridgeActivity {
+  private static final String TAG = "EMAds";
+
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
 
-    // Try to initialize Engage Ads SDK reflectively if it's available in classpath
     try {
-      Class<?> emAdsModuleClass = Class.forName("com.engage.engageadssdk.EMAdsModule");
-      Class<?> builderClass = Class.forName("com.engage.engageadssdk.input.EMAdsModuleInputBuilder");
-      Object builder = builderClass.getConstructor().newInstance();
+      // Initialize Engage Ads SDK using builder
+      EMAdsModule.init(
+        new EMAdsModuleInputBuilder()
+          .isGdprApproved(true)
+          .publisherId("a8ce40dc")
+          .channelId("62570352")
+          .context(getApplicationContext())
+          .isDebug(true)
+          .isAutoPlay(true)
+          .build()
+      );
+      Log.i(TAG, "EMAdsModule initialized");
 
-      try {
-        // set builder fields/methods (best-effort, method names may vary)
-        try { builderClass.getMethod("setIsGdprApproved", boolean.class).invoke(builder, true); Log.i("EMAds", "setIsGdprApproved=true"); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setPublisherId", String.class).invoke(builder, "a8ce40dc"); Log.i("EMAds", "publisherId=a8ce40dc"); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setChannelId", String.class).invoke(builder, "62570352"); Log.i("EMAds", "channelId=62570352"); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setContext", android.content.Context.class).invoke(builder, getApplicationContext()); Log.i("EMAds", "context set"); } catch (NoSuchMethodException ignored) {}
-        try { builderClass.getMethod("setIsDebug", boolean.class).invoke(builder, true); Log.i("EMAds", "setIsDebug=true"); } catch (NoSuchMethodException ignored) { Log.i("EMAds", "setIsDebug method not found"); }
-        try { builderClass.getMethod("setIsAutoPlay", boolean.class).invoke(builder, true); Log.i("EMAds", "setIsAutoPlay=true"); } catch (NoSuchMethodException ignored) {}
-      } catch (Exception ex) {
-        Log.i("EMAds", "builder set methods failed: " + ex.getMessage());
-      }
+      // Create and attach EMAdView
+      EMAdView adView = new EMAdView(this);
 
-      // build input
-      Object input = null;
-      try {
-        input = builderClass.getMethod("build").invoke(builder);
-      } catch (NoSuchMethodException ns) {
-        input = builder; // maybe builder is the input
-      }
-
-      // Try to get INSTANCE field (Kotlin object) or static init
-      Object emAdsModuleInstance = null;
-      try {
-        emAdsModuleInstance = emAdsModuleClass.getField("INSTANCE").get(null);
-      } catch (NoSuchFieldException ignored) {}
-
-      try {
-        if (emAdsModuleInstance != null) {
-          emAdsModuleClass.getMethod("init", input.getClass()).invoke(emAdsModuleInstance, input);
-        } else {
-          // try static init
-          emAdsModuleClass.getMethod("init", input.getClass()).invoke(null, input);
+      // Implement a content controller that pauses/resumes any WebView found in the view hierarchy
+      EmClientContentController controller = new EmClientContentController() {
+        @Override
+        public void pauseContent() {
+          runOnUiThread(() -> {
+            try {
+              WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
+              if (w != null) {
+                w.onPause();
+                Log.i(TAG, "WebView paused by EMAds controller");
+              }
+            } catch (Exception ex) {
+              Log.i(TAG, "pauseContent failed: " + ex.getMessage());
+            }
+          });
         }
-      } catch (NoSuchMethodException ignored) {}
 
-      // Create and attach ad view
-      try {
-        Class<?> emAdViewClass = Class.forName("com.engage.engageadssdk.ui.EMAdView");
-        Object adViewObj = emAdViewClass.getConstructor(android.content.Context.class).newInstance(this);
-        android.view.View adView = (android.view.View) adViewObj;
+        @Override
+        public void resumeContent() {
+          runOnUiThread(() -> {
+            try {
+              WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
+              if (w != null) {
+                w.onResume();
+                Log.i(TAG, "WebView resumed by EMAds controller");
+              }
+            } catch (Exception ex) {
+              Log.i(TAG, "resumeContent failed: " + ex.getMessage());
+            }
+          });
+        }
 
-        // set content controller if available
-        try {
-          Class<?> controllerClass = Class.forName("com.engage.engageadssdk.controller.EmClientContentController");
-          Object controller = java.lang.reflect.Proxy.newProxyInstance(
-            controllerClass.getClassLoader(),
-            new Class[]{controllerClass},
-            (proxy, method, args) -> { return null; }
-          );
-          try { emAdViewClass.getMethod("setContentController", controllerClass).invoke(adViewObj, controller); } catch (NoSuchMethodException ignored) {}
-        } catch (ClassNotFoundException ignored) {}
+        private WebView findWebView(ViewGroup root) {
+          if (root == null) return null;
+          for (int i = 0; i < root.getChildCount(); i++) {
+            android.view.View v = root.getChildAt(i);
+            if (v instanceof WebView) return (WebView) v;
+            if (v instanceof ViewGroup) {
+              WebView w = findWebView((ViewGroup) v);
+              if (w != null) return w;
+            }
+          }
+          return null;
+        }
+      };
 
-        // add to root
-        ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
-        FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
-          ViewGroup.LayoutParams.MATCH_PARENT,
-          ViewGroup.LayoutParams.WRAP_CONTENT
-        );
-        lp.gravity = Gravity.BOTTOM;
-        root.addView(adView, lp);
+      adView.setContentController(controller);
 
-        // call loadAd if present
-        try { emAdViewClass.getMethod("loadAd").invoke(adViewObj); } catch (NoSuchMethodException ignored) {}
-      } catch (ClassNotFoundException cnfe) {
-        // SDK not available, skip
-      }
+      adView.setAdEventListener(new EMVideoPlayerListener() {
+        @Override public void onAdStarted() { Log.i(TAG, "onAdStarted"); }
+        @Override public void onAdLoading() { Log.i(TAG, "onAdLoading"); }
+        @Override public void onAdsLoaded() { Log.i(TAG, "onAdsLoaded"); }
+        @Override public void onAdEnded() { Log.i(TAG, "onAdEnded"); }
+        @Override public void onAdPaused() { Log.i(TAG, "onAdPaused"); }
+        @Override public void onAdResumed() { Log.i(TAG, "onAdResumed"); }
+        public void onAdLoadError(String message) { Log.i(TAG, "onAdLoadError: " + message); }
+        public void onAdTapped() { Log.i(TAG, "onAdTapped"); }
+      });
 
-    } catch (ClassNotFoundException e) {
-      // Engage SDK not on classpath; ignore - app will run without ads
+      ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
+      FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
+        ViewGroup.LayoutParams.MATCH_PARENT,
+        ViewGroup.LayoutParams.WRAP_CONTENT
+      );
+      lp.gravity = Gravity.BOTTOM;
+      root.addView(adView, lp);
+      adView.loadAd();
+
+    } catch (NoClassDefFoundError e) {
+      // SDK not present on classpath
+      Log.i(TAG, "EMAds SDK not on classpath: " + e.getMessage());
     } catch (Exception e) {
-      // Any other reflection error - skip ads
-      e.printStackTrace();
+      Log.e(TAG, "EMAds init error", e);
     }
   }
 }
