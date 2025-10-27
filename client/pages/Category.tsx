@@ -1,4 +1,3 @@
-import { Link, useParams } from "react-router-dom";
 import { useEffect } from "react";
 import { Link as RouterLink, useParams } from "react-router-dom";
 import type { FeedItem } from "@shared/api";
