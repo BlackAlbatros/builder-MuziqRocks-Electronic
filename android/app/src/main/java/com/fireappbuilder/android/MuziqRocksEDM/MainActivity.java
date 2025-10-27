@@ -5,6 +5,7 @@ import android.view.ViewGroup;
 import android.widget.FrameLayout;
 import android.view.Gravity;
 import android.webkit.WebView;
+import android.widget.Toast;
 
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
@@ -36,6 +37,7 @@ public class MainActivity extends BridgeActivity {
           .build()
       );
       Log.i(TAG, "EMAdsModule initialized");
+      showToast("EMAds SDK initialized (debug)");
 
       // Create and attach EMAdView
       EMAdView adView = new EMAdView(this);
@@ -89,14 +91,14 @@ public class MainActivity extends BridgeActivity {
       adView.setContentController(controller);
 
       adView.setAdEventListener(new EMVideoPlayerListener() {
-        @Override public void onAdStarted() { Log.i(TAG, "onAdStarted"); }
-        @Override public void onAdLoading() { Log.i(TAG, "onAdLoading"); }
-        @Override public void onAdsLoaded() { Log.i(TAG, "onAdsLoaded"); }
-        @Override public void onAdEnded() { Log.i(TAG, "onAdEnded"); }
-        @Override public void onAdPaused() { Log.i(TAG, "onAdPaused"); }
-        @Override public void onAdResumed() { Log.i(TAG, "onAdResumed"); }
-        public void onAdLoadError(String message) { Log.i(TAG, "onAdLoadError: " + message); }
-        public void onAdTapped() { Log.i(TAG, "onAdTapped"); }
+        @Override public void onAdStarted() { Log.i(TAG, "onAdStarted"); showToast("EMAds: ad started"); }
+        @Override public void onAdLoading() { Log.i(TAG, "onAdLoading"); showToast("EMAds: loading ad"); }
+        @Override public void onAdsLoaded() { Log.i(TAG, "onAdsLoaded"); showToast("EMAds: ads loaded"); }
+        @Override public void onAdEnded() { Log.i(TAG, "onAdEnded"); showToast("EMAds: ad ended"); }
+        @Override public void onAdPaused() { Log.i(TAG, "onAdPaused"); showToast("EMAds: ad paused"); }
+        @Override public void onAdResumed() { Log.i(TAG, "onAdResumed"); showToast("EMAds: ad resumed"); }
+        public void onAdLoadError(String message) { Log.i(TAG, "onAdLoadError: " + message); showToast("EMAds: load error - " + message); }
+        public void onAdTapped() { Log.i(TAG, "onAdTapped"); showToast("EMAds: ad tapped"); }
       });
 
       ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
@@ -111,8 +113,14 @@ public class MainActivity extends BridgeActivity {
     } catch (NoClassDefFoundError e) {
       // SDK not present on classpath
       Log.i(TAG, "EMAds SDK not on classpath: " + e.getMessage());
+      showToast("EMAds SDK not on classpath");
     } catch (Exception e) {
       Log.e(TAG, "EMAds init error", e);
+      showToast("EMAds init error: " + e.getMessage());
     }
+  }
+
+  private void showToast(final String message) {
+    runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
   }
 }
