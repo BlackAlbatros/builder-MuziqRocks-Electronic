@@ -164,13 +164,23 @@ public class MainActivity extends BridgeActivity {
       );
       lp.gravity = Gravity.BOTTOM;
       // root.addView(adView, lp); // can't add since adView is Object; use reflection
-      EMAdViewClass.getMethod("setLayoutParams", android.view.ViewGroup.LayoutParams.class).invoke(adView, lp);
-      EMAdViewClass.getMethod("getRootView").invoke(adView); // just attempt to touch the view
-      // Finally add the view instance to root using reflection to avoid cast issues
-      ((ViewGroup) root).addView((android.view.View) adView);
+      // Try to set layout params if supported, then add the view instance to root
+      try {
+        EMAdViewClass.getMethod("setLayoutParams", android.view.ViewGroup.LayoutParams.class).invoke(adView, lp);
+      } catch (NoSuchMethodException ignored) {}
 
-      // Call loadAd
-      EMAdViewClass.getMethod("loadAd").invoke(adView);
+      // Finally add the view instance to root
+      try {
+        root.addView((android.view.View) adView);
+      } catch (ClassCastException cce) {
+        // If adView isn't a View subclass, skip adding it
+        Log.w(TAG, "adView is not a View instance, skipping addView: " + cce.getMessage());
+      }
+
+      // Call loadAd if present
+      try {
+        EMAdViewClass.getMethod("loadAd").invoke(adView);
+      } catch (NoSuchMethodException ignored) {}
 
     } catch (ClassNotFoundException e) {
       Log.i(TAG, "EMAds SDK classes not found on classpath: " + e.getMessage());
