@@ -52,7 +52,9 @@ function VideoCard({ item }: { item: FeedItem }) {
   return (
     <Link
       to={watchHref}
-      className="group block overflow-hidden rounded-lg border bg-card hover:shadow-lg transition relative"
+      data-video-card
+      tabIndex={0}
+      className="group block overflow-hidden rounded-lg border bg-card hover:shadow-lg transition relative outline-none focus:ring-4 focus:ring-primary"
     >
       <img
         src={item.thumbnail}
