@@ -1,5 +1,6 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFeedQuery } from "@/hooks/use-feed-query";
+import { toast as showToast } from "@/hooks/use-toast";
 import { Capacitor } from "@capacitor/core";
 import { useEffect, useRef, useState } from "react";
 
