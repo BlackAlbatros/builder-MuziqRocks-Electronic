@@ -137,17 +137,18 @@ export default function WatchPage() {
           >
             Your browser does not support HTML5 video.
           </video>
-          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-center p-4">
-            {showHome && (
+          {/* Home button positioned to the left above player controls */}
+          {showHome && (
+            <div className="absolute left-4 bottom-20 z-60">
               <Link
                 to="/"
                 onClick={() => setShowHome(false)}
-                className="rounded-md bg-white/20 px-6 py-3 text-sm font-medium text-white hover:bg-white/30"
+                className="rounded-md bg-white/20 px-5 py-2 text-sm font-medium text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white"
               >
                 Home
               </Link>
-            )}
-          </div>
+            </div>
+          )}
         </>
       ) : (
         <div className="flex flex-col items-center justify-center space-y-4">
