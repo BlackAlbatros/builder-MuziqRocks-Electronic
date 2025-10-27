@@ -31,6 +31,34 @@ export default function WatchPage() {
       }
     };
     handleBackButton();
+
+    // Show an initial debug toast on native platforms so developers know native toasts will appear
+    if (Capacitor?.isNativePlatform?.()) {
+      try {
+        showToast({ title: "Ad SDK (native)", description: "Native SDK will display debug toasts when ads initialize and load." });
+      } catch (e) {
+        console.warn("Failed to show native debug toast", e);
+      }
+    }
+
+    // Listen for optional in-app events from native layer (if implemented later)
+    const onEmAdsEvent = (e: Event) => {
+      try {
+        const detail = (e as CustomEvent)?.detail;
+        if (detail && typeof detail === "object") {
+          const title = detail.title || "EMAds";
+          const description = detail.message || detail.description || JSON.stringify(detail);
+          showToast({ title, description });
+        }
+      } catch (err) {
+        console.warn("emads event handler error", err);
+      }
+    };
+    window.addEventListener("emads", onEmAdsEvent as EventListener);
+
+    return () => {
+      window.removeEventListener("emads", onEmAdsEvent as EventListener);
+    };
   }, []);
 
   useEffect(() => {
