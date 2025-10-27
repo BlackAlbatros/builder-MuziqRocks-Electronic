@@ -10,12 +10,8 @@ import android.widget.Toast;
 import android.util.Log;
 import com.getcapacitor.BridgeActivity;
 
-// Direct Engage SDK imports
-import com.engage.engageadssdk.module.EMAdsModule;
-import com.engage.engageadssdk.module.EMAdsModuleInputBuilder;
-import com.engage.engageadssdk.ui.EMAdView;
-import com.engage.engageadssdk.EMVideoPlayerListener;
-import com.engage.engageadssdk.ui.EmClientContentController;
+import java.lang.reflect.*;
+import java.util.*;
 
 public class MainActivity extends BridgeActivity {
   private static final String TAG = "EMAds";
@@ -25,102 +21,172 @@ public class MainActivity extends BridgeActivity {
     super.onCreate(savedInstanceState);
 
     try {
-      // Initialize Engage Ads SDK using builder
-      EMAdsModule.init(
-        new EMAdsModuleInputBuilder()
-          .isGdprApproved(true)
-          .publisherId("a8ce40dc")
-          .channelId("62570352")
-          .context(getApplicationContext())
-          .isDebug(true)
-          .isAutoPlay(true)
-          .build()
-      );
-      Log.i(TAG, "EMAdsModule initialized");
+      // Use reflection so the app compiles/builds even if the Engage SDK isn't present.
+      ClassLoader cl = getClassLoader();
+
+      Class<?> EMAdsModuleClass = Class.forName("com.engage.engageadssdk.module.EMAdsModule", false, cl);
+      Class<?> EMAdsModuleInputBuilderClass = Class.forName("com.engage.engageadssdk.module.EMAdsModuleInputBuilder", false, cl);
+
+      // Instantiate builder and chain configuration methods
+      Object builder = EMAdsModuleInputBuilderClass.getDeclaredConstructor().newInstance();
+
+      // Each setter returns the builder (fluent API). Invoke reflectively.
+      EMAdsModuleInputBuilderClass.getMethod("isGdprApproved", boolean.class).invoke(builder, true);
+      EMAdsModuleInputBuilderClass.getMethod("publisherId", String.class).invoke(builder, "a8ce40dc");
+      EMAdsModuleInputBuilderClass.getMethod("channelId", String.class).invoke(builder, "62570352");
+      EMAdsModuleInputBuilderClass.getMethod("context", android.content.Context.class).invoke(builder, getApplicationContext());
+      EMAdsModuleInputBuilderClass.getMethod("isDebug", boolean.class).invoke(builder, true);
+      EMAdsModuleInputBuilderClass.getMethod("isAutoPlay", boolean.class).invoke(builder, true);
+
+      // Build the final input object
+      Object input = EMAdsModuleInputBuilderClass.getMethod("build").invoke(builder);
+
+      // Call EMAdsModule.init(input)
+      EMAdsModuleClass.getMethod("init", input.getClass().getInterfaces().length > 0 ? input.getClass().getInterfaces()[0] : input.getClass()).invoke(null, input);
+
+      Log.i(TAG, "EMAdsModule initialized (reflection)");
       showToast("EMAds SDK initialized (debug)");
 
-      // Create and attach EMAdView
-      EMAdView adView = new EMAdView(this);
+      // Create EMAdView via reflection
+      Class<?> EMAdViewClass = Class.forName("com.engage.engageadssdk.ui.EMAdView", false, cl);
+      Object adView = EMAdViewClass.getConstructor(android.content.Context.class).newInstance(this);
 
-      // Implement a content controller that pauses/resumes any WebView found in the view hierarchy
-      EmClientContentController controller = new EmClientContentController() {
+      // Create and attach EmClientContentController via dynamic proxy
+      Class<?> EmClientContentControllerClass = Class.forName("com.engage.engageadssdk.ui.EmClientContentController", false, cl);
+
+      Object contentController = Proxy.newProxyInstance(cl, new Class[]{EmClientContentControllerClass}, new InvocationHandler() {
         @Override
-        public void pauseContent() {
-          runOnUiThread(() -> {
-            try {
-              WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
-              if (w != null) {
-                w.onPause();
-                Log.i(TAG, "WebView paused by EMAds controller");
+        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+          String name = method.getName();
+          if ("pauseContent".equals(name)) {
+            runOnUiThread(() -> {
+              try {
+                WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
+                if (w != null) {
+                  w.onPause();
+                  Log.i(TAG, "WebView paused by EMAds controller (proxy)");
+                }
+              } catch (Exception ex) {
+                Log.i(TAG, "pauseContent failed: " + ex.getMessage());
               }
-            } catch (Exception ex) {
-              Log.i(TAG, "pauseContent failed: " + ex.getMessage());
-            }
-          });
-        }
-
-        @Override
-        public void resumeContent() {
-          runOnUiThread(() -> {
-            try {
-              WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
-              if (w != null) {
-                w.onResume();
-                Log.i(TAG, "WebView resumed by EMAds controller");
+            });
+            return null;
+          } else if ("resumeContent".equals(name)) {
+            runOnUiThread(() -> {
+              try {
+                WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
+                if (w != null) {
+                  w.onResume();
+                  Log.i(TAG, "WebView resumed by EMAds controller (proxy)");
+                }
+              } catch (Exception ex) {
+                Log.i(TAG, "resumeContent failed: " + ex.getMessage());
               }
-            } catch (Exception ex) {
-              Log.i(TAG, "resumeContent failed: " + ex.getMessage());
-            }
-          });
-        }
-
-        private WebView findWebView(ViewGroup root) {
-          if (root == null) return null;
-          for (int i = 0; i < root.getChildCount(); i++) {
-            android.view.View v = root.getChildAt(i);
-            if (v instanceof WebView) return (WebView) v;
-            if (v instanceof ViewGroup) {
-              WebView w = findWebView((ViewGroup) v);
-              if (w != null) return w;
-            }
+            });
+            return null;
           }
           return null;
         }
-      };
-
-      adView.setContentController(controller);
-
-      adView.setAdEventListener(new EMVideoPlayerListener() {
-        @Override public void onAdStarted() { Log.i(TAG, "onAdStarted"); showToast("EMAds: ad started"); }
-        @Override public void onAdLoading() { Log.i(TAG, "onAdLoading"); showToast("EMAds: loading ad"); }
-        @Override public void onAdsLoaded() { Log.i(TAG, "onAdsLoaded"); showToast("EMAds: ads loaded"); }
-        @Override public void onAdEnded() { Log.i(TAG, "onAdEnded"); showToast("EMAds: ad ended"); }
-        @Override public void onAdPaused() { Log.i(TAG, "onAdPaused"); showToast("EMAds: ad paused"); }
-        @Override public void onAdResumed() { Log.i(TAG, "onAdResumed"); showToast("EMAds: ad resumed"); }
-        public void onAdLoadError(String message) { Log.i(TAG, "onAdLoadError: " + message); showToast("EMAds: load error - " + message); }
-        public void onAdTapped() { Log.i(TAG, "onAdTapped"); showToast("EMAds: ad tapped"); }
       });
 
+      // Set content controller: adView.setContentController(controller)
+      EMAdViewClass.getMethod("setContentController", EmClientContentControllerClass).invoke(adView, contentController);
+
+      // Attach ad event listener via dynamic proxy for EMVideoPlayerListener
+      try {
+        Class<?> EMVideoPlayerListenerClass = Class.forName("com.engage.engageadssdk.EMVideoPlayerListener", false, cl);
+        Object listenerProxy = Proxy.newProxyInstance(cl, new Class[]{EMVideoPlayerListenerClass}, new InvocationHandler() {
+          @Override
+          public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            String name = method.getName();
+            switch (name) {
+              case "onAdStarted":
+                Log.i(TAG, "onAdStarted");
+                showToast("EMAds: ad started");
+                break;
+              case "onAdLoading":
+                Log.i(TAG, "onAdLoading");
+                showToast("EMAds: loading ad");
+                break;
+              case "onAdsLoaded":
+                Log.i(TAG, "onAdsLoaded");
+                showToast("EMAds: ads loaded");
+                break;
+              case "onAdEnded":
+                Log.i(TAG, "onAdEnded");
+                showToast("EMAds: ad ended");
+                break;
+              case "onAdPaused":
+                Log.i(TAG, "onAdPaused");
+                showToast("EMAds: ad paused");
+                break;
+              case "onAdResumed":
+                Log.i(TAG, "onAdResumed");
+                showToast("EMAds: ad resumed");
+                break;
+              case "onAdLoadError":
+                Log.i(TAG, "onAdLoadError");
+                if (args != null && args.length > 0 && args[0] instanceof String) {
+                  showToast("EMAds: load error - " + args[0]);
+                }
+                break;
+              case "onAdTapped":
+                Log.i(TAG, "onAdTapped");
+                showToast("EMAds: ad tapped");
+                break;
+            }
+            return null;
+          }
+        });
+
+        EMAdViewClass.getMethod("setAdEventListener", EMVideoPlayerListenerClass).invoke(adView, listenerProxy);
+      } catch (ClassNotFoundException cnfe) {
+        // Listener interface not present; ignore
+        Log.i(TAG, "EMVideoPlayerListener class not found (listener not attached)");
+      }
+
+      // Add view to layout
       ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
       FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
         ViewGroup.LayoutParams.MATCH_PARENT,
         ViewGroup.LayoutParams.WRAP_CONTENT
       );
       lp.gravity = Gravity.BOTTOM;
-      root.addView(adView, lp);
-      adView.loadAd();
+      // root.addView(adView, lp); // can't add since adView is Object; use reflection
+      EMAdViewClass.getMethod("setLayoutParams", android.view.ViewGroup.LayoutParams.class).invoke(adView, lp);
+      EMAdViewClass.getMethod("getRootView").invoke(adView); // just attempt to touch the view
+      // Finally add the view instance to root using reflection to avoid cast issues
+      ((ViewGroup) root).addView((android.view.View) adView);
 
-    } catch (NoClassDefFoundError e) {
-      // SDK not present on classpath
-      Log.i(TAG, "EMAds SDK not on classpath: " + e.getMessage());
+      // Call loadAd
+      EMAdViewClass.getMethod("loadAd").invoke(adView);
+
+    } catch (ClassNotFoundException e) {
+      Log.i(TAG, "EMAds SDK classes not found on classpath: " + e.getMessage());
       showToast("EMAds SDK not on classpath");
-    } catch (Exception e) {
-      Log.e(TAG, "EMAds init error", e);
+    } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
+      Log.e(TAG, "EMAds reflection/init error", e);
       showToast("EMAds init error: " + e.getMessage());
+    } catch (Throwable t) {
+      Log.e(TAG, "Unexpected EMAds error", t);
+      showToast("EMAds unexpected error: " + t.getMessage());
     }
   }
 
   private void showToast(final String message) {
     runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
+  }
+
+  private WebView findWebView(ViewGroup root) {
+    if (root == null) return null;
+    for (int i = 0; i < root.getChildCount(); i++) {
+      android.view.View v = root.getChildAt(i);
+      if (v instanceof WebView) return (WebView) v;
+      if (v instanceof ViewGroup) {
+        WebView w = findWebView((ViewGroup) v);
+        if (w != null) return w;
+      }
+    }
+    return null;
   }
 }
