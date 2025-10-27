@@ -8,29 +8,9 @@ export function Header() {
   const [params] = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
   const navigate = useNavigate();
-  const [hidden, setHidden] = useState(false);
-
   useEffect(() => {
     setQ(params.get("q") ?? "");
   }, [params]);
-
-  // Hide header on scroll down, show on scroll up or at top
-  useEffect(() => {
-    let lastY = window.scrollY;
-    const onScroll = () => {
-      const y = window.scrollY;
-      const delta = y - lastY;
-      lastY = y;
-      if (y <= 8) {
-        setHidden(false);
-        return;
-      }
-      if (delta > 4 && y > 48) setHidden(true);
-      else if (delta < -4) setHidden(false);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
 
   function applySearch(value: string) {
     setQ(value);
