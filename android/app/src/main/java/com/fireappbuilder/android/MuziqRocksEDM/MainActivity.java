@@ -41,8 +41,19 @@ public class MainActivity extends BridgeActivity {
       // Build the final input object
       Object input = EMAdsModuleInputBuilderClass.getMethod("build").invoke(builder);
 
-      // Call EMAdsModule.init(input)
-      EMAdsModuleClass.getMethod("init", input.getClass().getInterfaces().length > 0 ? input.getClass().getInterfaces()[0] : input.getClass()).invoke(null, input);
+      // Call EMAdsModule.init(input) - find any init method that accepts one parameter
+      Method initMethod = null;
+      for (Method m : EMAdsModuleClass.getMethods()) {
+        if (m.getName().equals("init") && m.getParameterTypes().length == 1) {
+          initMethod = m;
+          break;
+        }
+      }
+      if (initMethod != null) {
+        initMethod.invoke(null, input);
+      } else {
+        Log.w(TAG, "EMAdsModule.init method not found via reflection");
+      }
 
       Log.i(TAG, "EMAdsModule initialized (reflection)");
       showToast("EMAds SDK initialized (debug)");
