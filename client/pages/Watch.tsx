@@ -33,27 +33,39 @@ export default function WatchPage() {
   }, []);
 
   useEffect(() => {
-    // Keyboard / remote handlers: Enter/Select, Pause, or Back/Escape should show Home overlay
+    // Keyboard / remote handlers: Enter/Select, Pause, or Back/Escape should show Home overlay and toggle play/pause
     const onKey = (e: KeyboardEvent) => {
       const showKeys = ["Enter", "OK", "Select", " "]; // include space
       const backKeys = ["Backspace", "Escape", "BrowserBack"];
       const code = (e as any).keyCode || (e as any).which || 0;
-      // Media play/pause (remote) codes: 85 (KEYCODE_MEDIA_PLAY_PAUSE), 127 (KEYCODE_MEDIA_PAUSE), 126 (play)
-      const mediaKeys = [85, 127, 126];
+      // Media play/pause (remote) codes: 85 (KEYCODE_MEDIA_PLAY_PAUSE), 127 (KEYCODE_MEDIA_PAUSE), 126 (play), 23 center
+      const mediaKeys = [85, 127, 126, 23, 66];
 
-      if (showKeys.includes(e.key)) {
-        setShowHome(true);
+      const vid = videoRef.current;
+
+      // Center button / Enter - toggle play/pause
+      if (code === 23 || code === 66 || showKeys.includes(e.key)) {
+        e.preventDefault();
+        if (vid) {
+          if (vid.paused) vid.play();
+          else vid.pause();
+        }
+        return;
       }
+
       if (backKeys.includes(e.key)) {
         e.preventDefault();
         setShowHome(true);
+        return;
       }
-      if (
-        mediaKeys.includes(code) ||
-        ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)
-      ) {
-        // toggle show when pause/play pressed
-        setShowHome(true);
+
+      if (mediaKeys.includes(code) || ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key)) {
+        e.preventDefault();
+        if (vid) {
+          if (vid.paused) vid.play();
+          else vid.pause();
+        }
+        return;
       }
     };
     window.addEventListener("keydown", onKey);
