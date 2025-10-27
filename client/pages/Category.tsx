@@ -16,6 +16,15 @@ export default function CategoryPage() {
     return slugify(tag) === slug;
   });
 
+  useEffect(() => {
+    // ensure we start at top and focus first card for remote navigation
+    setTimeout(() => {
+      window.scrollTo({ top: 0 });
+      const first = document.querySelector<HTMLElement>('[data-video-card]');
+      if (first) first.focus();
+    }, 0);
+  }, [slug]);
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6 flex items-center justify-between rounded-md bg-black/30 px-3 py-2">
