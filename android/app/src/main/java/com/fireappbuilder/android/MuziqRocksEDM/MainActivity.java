@@ -196,17 +196,39 @@ public class MainActivity extends BridgeActivity {
     } catch (ClassNotFoundException e) {
       Log.i(TAG, "EMAds SDK classes not found on classpath: " + e.getMessage());
       showToast("EMAds SDK not on classpath");
+      // notify web layer that SDK is missing
+      sendEventToWeb("sdkMissing", "{\"message\":\"EMAds SDK not on classpath\"}");
     } catch (InvocationTargetException | NoSuchMethodException | InstantiationException | IllegalAccessException e) {
       Log.e(TAG, "EMAds reflection/init error", e);
       showToast("EMAds init error: " + e.getMessage());
+      sendEventToWeb("sdkError", "{\"message\":\"" + e.getMessage().replace("\"", "\\\"") + "\"}");
     } catch (Throwable t) {
       Log.e(TAG, "Unexpected EMAds error", t);
       showToast("EMAds unexpected error: " + t.getMessage());
+      sendEventToWeb("sdkError", "{\"message\":\"" + t.getMessage().replace("\"", "\\\"") + "\"}");
     }
   }
 
   private void showToast(final String message) {
     runOnUiThread(() -> Toast.makeText(MainActivity.this, message, Toast.LENGTH_SHORT).show());
+  }
+
+  private void sendEventToWeb(final String eventName, final String jsonPayload) {
+    runOnUiThread(() -> {
+      try {
+        ViewGroup root = (ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content);
+        WebView w = findWebView(root);
+        if (w != null) {
+          String js = "window.dispatchEvent(new CustomEvent('emads', { detail: { event: '" + eventName + "', payload: " + jsonPayload + " } } ));";
+          w.evaluateJavascript(js, null);
+          Log.i(TAG, "Dispatched emads event to web: " + eventName);
+        } else {
+          Log.w(TAG, "WebView not found, cannot dispatch emads event: " + eventName);
+        }
+      } catch (Exception ex) {
+        Log.e(TAG, "sendEventToWeb failed: " + ex.getMessage(), ex);
+      }
+    });
   }
 
   private WebView findWebView(ViewGroup root) {
