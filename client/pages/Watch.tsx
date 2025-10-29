@@ -280,6 +280,7 @@ export default function WatchPage() {
           >
             Your browser does not support HTML5 video.
           </video>
+
           {/* Home button positioned to the left above player controls */}
           {showHome && (
             <div className="absolute left-4 bottom-20 z-60">
@@ -290,6 +291,18 @@ export default function WatchPage() {
               >
                 Home
               </Link>
+            </div>
+          )}
+
+          {/* Ad overlay: shown for native SDK ad or simulated ad */}
+          {(nativeAdActive || simAdActive) && (
+            <div className="absolute inset-0 z-70 flex items-center justify-center bg-black/80">
+              <div className="text-center text-white">
+                <div className="text-2xl font-bold mb-2">
+                  {nativeAdActive ? "Native SDK Ad (debug)" : "Ad (simulated)"}
+                </div>
+                <div className="text-sm">{nativeAdActive ? `${nativeAdSeconds}s` : `${simAdSeconds}s`}</div>
+              </div>
             </div>
           )}
         </>
