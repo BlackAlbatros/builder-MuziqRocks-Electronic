@@ -247,7 +247,7 @@ export default function WatchPage() {
             <div className="absolute left-4 bottom-20 z-60">
               <Link
                 to="/"
-                onClick={() => setShowHome(false)}
+                data-home-link
                 className="rounded-md bg-white/20 px-5 py-2 text-sm font-medium text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white"
               >
                 Home
