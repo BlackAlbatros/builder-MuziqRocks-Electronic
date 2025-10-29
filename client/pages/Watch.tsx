@@ -51,30 +51,49 @@ export default function WatchPage() {
       try {
         receivedEmAdsEvent = true;
         const detail = (e as CustomEvent)?.detail || {};
-        const eventName = (detail && (detail.event || detail.type || detail.eventName)) || "";
+        const eventName =
+          (detail && (detail.event || detail.type || detail.eventName)) || "";
         const payload = detail && detail.payload ? detail.payload : detail;
-        const message = typeof payload === "string" ? payload : payload?.message || payload?.description;
+        const message =
+          typeof payload === "string"
+            ? payload
+            : payload?.message || payload?.description;
 
         // General toasts for status events
-        if (eventName === "adsLoaded" || eventName === "adLoading" || eventName === "adLoadError" || eventName === "sdkMissing" || eventName === "sdkError" || eventName === "adTapped") {
-          showToast({ title: `EMAds: ${eventName}`, description: message ?? JSON.stringify(payload) });
+        if (
+          eventName === "adsLoaded" ||
+          eventName === "adLoading" ||
+          eventName === "adLoadError" ||
+          eventName === "sdkMissing" ||
+          eventName === "sdkError" ||
+          eventName === "adTapped"
+        ) {
+          showToast({
+            title: `EMAds: ${eventName}`,
+            description: message ?? JSON.stringify(payload),
+          });
         }
 
         if (eventName === "adStarted") {
           // Native SDK started an ad — show persistent overlay with countdown
-          const duration = payload && payload.duration ? Number(payload.duration) : 30;
+          const duration =
+            payload && payload.duration ? Number(payload.duration) : 30;
           setNativeAdSeconds(duration || 30);
           setNativeAdActive(true);
 
           // start countdown timer (single global interval slot)
           try {
-            if ((window as any).__nativeAdInterval) clearInterval((window as any).__nativeAdInterval);
+            if ((window as any).__nativeAdInterval)
+              clearInterval((window as any).__nativeAdInterval);
             (window as any).__nativeAdInterval = setInterval(() => {
               setNativeAdSeconds((s) => {
                 if (s <= 1) {
                   clearInterval((window as any).__nativeAdInterval);
                   setNativeAdActive(false);
-                  showToast({ title: "EMAds", description: "Native ad countdown finished" });
+                  showToast({
+                    title: "EMAds",
+                    description: "Native ad countdown finished",
+                  });
                   return 0;
                 }
                 return s - 1;
@@ -86,10 +105,16 @@ export default function WatchPage() {
         } else if (eventName === "adEnded") {
           setNativeAdActive(false);
           showToast({ title: "EMAds", description: "Native ad ended" });
-          if ((window as any).__nativeAdInterval) { clearInterval((window as any).__nativeAdInterval); (window as any).__nativeAdInterval = undefined; }
+          if ((window as any).__nativeAdInterval) {
+            clearInterval((window as any).__nativeAdInterval);
+            (window as any).__nativeAdInterval = undefined;
+          }
         } else if (!eventName) {
           // Fallback: show a toast with any provided detail
-          showToast({ title: detail.title || "EMAds", description: message ?? JSON.stringify(detail) });
+          showToast({
+            title: detail.title || "EMAds",
+            description: message ?? JSON.stringify(detail),
+          });
         }
       } catch (err) {
         console.warn("emads event handler error", err);
@@ -130,7 +155,10 @@ export default function WatchPage() {
     }
     setSimAdActive(true);
     setSimAdSeconds(30);
-    showToast({ title: "Ad (simulated)", description: "Debug ad playing — 30s" });
+    showToast({
+      title: "Ad (simulated)",
+      description: "Debug ad playing — 30s",
+    });
     const iv = window.setInterval(() => {
       setSimAdSeconds((s) => {
         if (s <= 1) {
@@ -140,7 +168,10 @@ export default function WatchPage() {
             const v = videoRef.current;
             if (v && v.paused) v.play();
           } catch (e) {}
-          showToast({ title: "Ad finished", description: "Simulated ad ended" });
+          showToast({
+            title: "Ad finished",
+            description: "Simulated ad ended",
+          });
           return 0;
         }
         return s - 1;
@@ -164,7 +195,10 @@ export default function WatchPage() {
       if (ok && active) {
         // If Home link is focused allow it to be activated by default (so navigation works)
         try {
-          if (active.matches && (active as HTMLElement).matches('[data-home-link]')) {
+          if (
+            active.matches &&
+            (active as HTMLElement).matches("[data-home-link]")
+          ) {
             return; // let the browser/React Router handle click
           }
         } catch (err) {}
@@ -301,7 +335,9 @@ export default function WatchPage() {
                 <div className="text-2xl font-bold mb-2">
                   {nativeAdActive ? "Native SDK Ad (debug)" : "Ad (simulated)"}
                 </div>
-                <div className="text-sm">{nativeAdActive ? `${nativeAdSeconds}s` : `${simAdSeconds}s`}</div>
+                <div className="text-sm">
+                  {nativeAdActive ? `${nativeAdSeconds}s` : `${simAdSeconds}s`}
+                </div>
               </div>
             </div>
           )}
