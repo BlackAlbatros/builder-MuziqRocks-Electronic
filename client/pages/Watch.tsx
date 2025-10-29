@@ -80,6 +80,36 @@ export default function WatchPage() {
     };
   }, []);
 
+  const [simAdActive, setSimAdActive] = useState(false);
+  const [simAdSeconds, setSimAdSeconds] = useState(30);
+
+  function startSimulatedAd() {
+    try {
+      const vid = videoRef.current;
+      if (vid && !vid.paused) vid.pause();
+    } catch (err) {
+      // ignore
+    }
+    setSimAdActive(true);
+    setSimAdSeconds(30);
+    showToast({ title: "Ad (simulated)", description: "Debug ad playing — 30s" });
+    const iv = window.setInterval(() => {
+      setSimAdSeconds((s) => {
+        if (s <= 1) {
+          window.clearInterval(iv);
+          setSimAdActive(false);
+          try {
+            const v = videoRef.current;
+            if (v && v.paused) v.play();
+          } catch (e) {}
+          showToast({ title: "Ad finished", description: "Simulated ad ended" });
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+  }
+
   useEffect(() => {
     // Keyboard / remote handlers: Enter/Select, Pause, or Back/Escape should show Home overlay and toggle play/pause
     const onKey = (e: KeyboardEvent) => {
@@ -90,9 +120,17 @@ export default function WatchPage() {
       const mediaKeys = [85, 127, 126, 23, 66];
 
       const vid = videoRef.current;
+      const active = (document.activeElement as HTMLElement) || null;
 
-      // Center button / Enter - toggle play/pause
-      if (code === 23 || code === 66 || showKeys.includes(e.key)) {
+      const ok = code === 23 || code === 66 || showKeys.includes(e.key);
+      if (ok && active) {
+        // If Home link is focused allow it to be activated by default (so navigation works)
+        try {
+          if (active.matches && (active as HTMLElement).matches('[data-home-link]')) {
+            return; // let the browser/React Router handle click
+          }
+        } catch (err) {}
+
         e.preventDefault();
         if (vid) {
           if (vid.paused) vid.play();
@@ -103,7 +141,8 @@ export default function WatchPage() {
 
       if (backKeys.includes(e.key)) {
         e.preventDefault();
-        setShowHome(true);
+        // when back pressed, exit to home
+        window.location.href = "/";
         return;
       }
 
