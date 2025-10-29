@@ -45,17 +45,51 @@ export default function WatchPage() {
       }
     }
 
-    // Listen for optional in-app events from native layer (if implemented later)
+    // Listen for optional in-app events from native layer (dispatched by MainActivity)
     let receivedEmAdsEvent = false;
     const onEmAdsEvent = (e: Event) => {
       try {
         receivedEmAdsEvent = true;
-        const detail = (e as CustomEvent)?.detail;
-        if (detail && typeof detail === "object") {
-          const title = detail.title || "EMAds";
-          const description =
-            detail.message || detail.description || JSON.stringify(detail);
-          showToast({ title, description });
+        const detail = (e as CustomEvent)?.detail || {};
+        const eventName = (detail && (detail.event || detail.type || detail.eventName)) || "";
+        const payload = detail && detail.payload ? detail.payload : detail;
+        const message = typeof payload === "string" ? payload : payload?.message || payload?.description;
+
+        // General toasts for status events
+        if (eventName === "adsLoaded" || eventName === "adLoading" || eventName === "adLoadError" || eventName === "sdkMissing" || eventName === "sdkError" || eventName === "adTapped") {
+          showToast({ title: `EMAds: ${eventName}`, description: message ?? JSON.stringify(payload) });
+        }
+
+        if (eventName === "adStarted") {
+          // Native SDK started an ad — show persistent overlay with countdown
+          const duration = payload && payload.duration ? Number(payload.duration) : 30;
+          setNativeAdSeconds(duration || 30);
+          setNativeAdActive(true);
+
+          // start countdown timer (single global interval slot)
+          try {
+            if ((window as any).__nativeAdInterval) clearInterval((window as any).__nativeAdInterval);
+            (window as any).__nativeAdInterval = setInterval(() => {
+              setNativeAdSeconds((s) => {
+                if (s <= 1) {
+                  clearInterval((window as any).__nativeAdInterval);
+                  setNativeAdActive(false);
+                  showToast({ title: "EMAds", description: "Native ad countdown finished" });
+                  return 0;
+                }
+                return s - 1;
+              });
+            }, 1000);
+          } catch (err) {
+            console.warn("native ad interval error", err);
+          }
+        } else if (eventName === "adEnded") {
+          setNativeAdActive(false);
+          showToast({ title: "EMAds", description: "Native ad ended" });
+          if ((window as any).__nativeAdInterval) { clearInterval((window as any).__nativeAdInterval); (window as any).__nativeAdInterval = undefined; }
+        } else if (!eventName) {
+          // Fallback: show a toast with any provided detail
+          showToast({ title: detail.title || "EMAds", description: message ?? JSON.stringify(detail) });
         }
       } catch (err) {
         console.warn("emads event handler error", err);
