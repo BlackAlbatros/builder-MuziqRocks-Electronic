@@ -114,36 +114,47 @@ public class MainActivity extends BridgeActivity {
               case "onAdStarted":
                 Log.i(TAG, "onAdStarted");
                 showToast("EMAds: ad started");
+                sendEventToWeb("adStarted", "{\"message\":\"ad started\"}");
                 break;
               case "onAdLoading":
                 Log.i(TAG, "onAdLoading");
                 showToast("EMAds: loading ad");
+                sendEventToWeb("adLoading", "{\"message\":\"loading ad\"}");
                 break;
               case "onAdsLoaded":
                 Log.i(TAG, "onAdsLoaded");
                 showToast("EMAds: ads loaded");
+                sendEventToWeb("adsLoaded", "{\"message\":\"ads loaded\"}");
                 break;
               case "onAdEnded":
                 Log.i(TAG, "onAdEnded");
                 showToast("EMAds: ad ended");
+                sendEventToWeb("adEnded", "{\"message\":\"ad ended\"}");
                 break;
               case "onAdPaused":
                 Log.i(TAG, "onAdPaused");
                 showToast("EMAds: ad paused");
+                sendEventToWeb("adPaused", "{\"message\":\"ad paused\"}");
                 break;
               case "onAdResumed":
                 Log.i(TAG, "onAdResumed");
                 showToast("EMAds: ad resumed");
+                sendEventToWeb("adResumed", "{\"message\":\"ad resumed\"}");
                 break;
               case "onAdLoadError":
                 Log.i(TAG, "onAdLoadError");
                 if (args != null && args.length > 0 && args[0] instanceof String) {
-                  showToast("EMAds: load error - " + args[0]);
+                  String msg = (String) args[0];
+                  showToast("EMAds: load error - " + msg);
+                  sendEventToWeb("adLoadError", "{\"message\":\"" + msg.replace("\"", "\\\"") + "\"}");
+                } else {
+                  sendEventToWeb("adLoadError", "{\"message\":\"unknown\"}");
                 }
                 break;
               case "onAdTapped":
                 Log.i(TAG, "onAdTapped");
                 showToast("EMAds: ad tapped");
+                sendEventToWeb("adTapped", "{\"message\":\"ad tapped\"}");
                 break;
             }
             return null;
