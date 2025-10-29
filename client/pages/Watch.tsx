@@ -117,6 +117,10 @@ export default function WatchPage() {
   const [simAdActive, setSimAdActive] = useState(false);
   const [simAdSeconds, setSimAdSeconds] = useState(30);
 
+  // Native SDK ad indicator (triggered by emads events from native MainActivity)
+  const [nativeAdActive, setNativeAdActive] = useState(false);
+  const [nativeAdSeconds, setNativeAdSeconds] = useState(30);
+
   function startSimulatedAd() {
     try {
       const vid = videoRef.current;
