@@ -46,8 +46,10 @@ export default function WatchPage() {
     }
 
     // Listen for optional in-app events from native layer (if implemented later)
+    let receivedEmAdsEvent = false;
     const onEmAdsEvent = (e: Event) => {
       try {
+        receivedEmAdsEvent = true;
         const detail = (e as CustomEvent)?.detail;
         if (detail && typeof detail === "object") {
           const title = detail.title || "EMAds";
@@ -61,8 +63,20 @@ export default function WatchPage() {
     };
     window.addEventListener("emads", onEmAdsEvent as EventListener);
 
+    // If running on native and no native ad events appear shortly, simulate a debug ad
+    let simTimer: number | undefined;
+    if (Capacitor?.isNativePlatform?.()) {
+      simTimer = window.setTimeout(() => {
+        if (!receivedEmAdsEvent) {
+          // start simulated ad
+          startSimulatedAd();
+        }
+      }, 2000);
+    }
+
     return () => {
       window.removeEventListener("emads", onEmAdsEvent as EventListener);
+      if (simTimer) window.clearTimeout(simTimer);
     };
   }, []);
 
