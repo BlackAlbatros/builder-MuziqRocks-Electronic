@@ -247,6 +247,39 @@ export default function WatchPage() {
     };
   }, [videoId]);
 
+  // Ensure video is paused/muted during native or simulated ad overlays
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    let prevMuted = vid.muted;
+    let prevPaused = vid.paused;
+
+    if (nativeAdActive || simAdActive) {
+      try {
+        prevMuted = vid.muted;
+        prevPaused = vid.paused;
+        vid.pause();
+        vid.muted = true;
+      } catch (err) {
+        console.warn('failed to pause/mute video for ad', err);
+      }
+    } else {
+      try {
+        // restore previous state: unmute and resume if it was playing before
+        vid.muted = prevMuted;
+        if (!prevPaused && vid.paused) {
+          vid.play().catch(() => {});
+        }
+      } catch (err) {
+        console.warn('failed to restore video state after ad', err);
+      }
+    }
+
+    return () => {
+      // no cleanup needed here
+    };
+  }, [nativeAdActive, simAdActive]);
+
   const { data, isLoading, error } = useFeedQuery();
 
   if (!videoId) {
