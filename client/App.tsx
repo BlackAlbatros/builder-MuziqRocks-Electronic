@@ -16,6 +16,13 @@ import { Footer } from "./components/layout/Footer";
 
 const queryClient = new QueryClient();
 
+const RouteSpacer = () => {
+  const location = useLocation();
+  // spacer height equals header height; hide on watch pages
+  if (location.pathname && location.pathname.startsWith('/watch')) return null;
+  return <div className="h-16" />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
