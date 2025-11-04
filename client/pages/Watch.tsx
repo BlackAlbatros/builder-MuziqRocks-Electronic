@@ -207,6 +207,14 @@ export default function WatchPage() {
   }
 
   useEffect(() => {
+    if (showHome && homeLinkRef.current) {
+      try {
+        homeLinkRef.current.focus();
+      } catch (e) {}
+    }
+  }, [showHome]);
+
+  useEffect(() => {
     // Keyboard / remote handlers: Enter/Select, Pause, or Back/Escape should show Home overlay and toggle play/pause
     const onKey = (e: KeyboardEvent) => {
       const showKeys = ["Enter", "OK", "Select", " "]; // include space
