@@ -10,6 +10,8 @@ export default function WatchPage() {
   const videoId = params.id ? decodeURIComponent(params.id) : "";
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showHome, setShowHome] = useState(false);
+  const homeLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const videoStateRef = useRef<{ wasPlaying: boolean; wasMuted: boolean }>({ wasPlaying: false, wasMuted: false });
 
   useEffect(() => {
     // Intercept native back button: show Home overlay instead of navigating away immediately
@@ -19,10 +21,9 @@ export default function WatchPage() {
           const core = await import("@capacitor/core");
           const AppClass = (core as any).App;
           if (AppClass?.addListener) {
-            const listener = AppClass.addListener("backButton", (ev: any) => {
+            AppClass.addListener("backButton", (ev: any) => {
               ev?.preventDefault?.();
               setShowHome(true);
-              // do not remove listener; keep intercepting while on watch page
             });
           }
         } catch (err) {
@@ -72,6 +73,32 @@ export default function WatchPage() {
             title: `EMAds: ${eventName}`,
             description: message ?? JSON.stringify(payload),
           });
+        }
+
+        // Handle SDK content pause/resume requests explicitly and let web layer control video element
+        if (eventName === "pauseContent") {
+          try {
+            const v = videoRef.current;
+            if (v) {
+              videoStateRef.current = { wasPlaying: !v.paused, wasMuted: v.muted };
+              v.pause();
+              v.muted = true;
+            }
+          } catch (err) {
+            console.warn("pauseContent handling failed", err);
+          }
+          return;
+        } else if (eventName === "resumeContent") {
+          try {
+            const v = videoRef.current;
+            if (v) {
+              v.muted = videoStateRef.current.wasMuted;
+              if (videoStateRef.current.wasPlaying && v.paused) v.play().catch(() => {});
+            }
+          } catch (err) {
+            console.warn("resumeContent handling failed", err);
+          }
+          return;
         }
 
         if (eventName === "adStarted") {
@@ -247,17 +274,14 @@ export default function WatchPage() {
     };
   }, [videoId]);
 
-  // Ensure video is paused/muted during native or simulated ad overlays
+  // Ensure video is paused/muted during native or simulated ad overlays. Use a ref to persist previous state across effect runs.
   useEffect(() => {
     const vid = videoRef.current;
     if (!vid) return;
-    let prevMuted = vid.muted;
-    let prevPaused = vid.paused;
 
     if (nativeAdActive || simAdActive) {
       try {
-        prevMuted = vid.muted;
-        prevPaused = vid.paused;
+        videoStateRef.current = { wasPlaying: !vid.paused, wasMuted: vid.muted };
         vid.pause();
         vid.muted = true;
       } catch (err) {
@@ -265,19 +289,14 @@ export default function WatchPage() {
       }
     } else {
       try {
-        // restore previous state: unmute and resume if it was playing before
-        vid.muted = prevMuted;
-        if (!prevPaused && vid.paused) {
+        vid.muted = videoStateRef.current.wasMuted;
+        if (videoStateRef.current.wasPlaying && vid.paused) {
           vid.play().catch(() => {});
         }
       } catch (err) {
         console.warn('failed to restore video state after ad', err);
       }
     }
-
-    return () => {
-      // no cleanup needed here
-    };
   }, [nativeAdActive, simAdActive]);
 
   const { data, isLoading, error } = useFeedQuery();
