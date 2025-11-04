@@ -70,30 +70,13 @@ public class MainActivity extends BridgeActivity {
         public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
           String name = method.getName();
           if ("pauseContent".equals(name)) {
-            runOnUiThread(() -> {
-              try {
-                WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
-                if (w != null) {
-                  w.onPause();
-                  Log.i(TAG, "WebView paused by EMAds controller (proxy)");
-                }
-              } catch (Exception ex) {
-                Log.i(TAG, "pauseContent failed: " + ex.getMessage());
-              }
-            });
+            // Forward pause/resume requests to the web layer so the web app can pause the HTML5 video
+            Log.i(TAG, "pauseContent requested by SDK, forwarding to web layer");
+            sendEventToWeb("pauseContent", "{\"message\":\"pauseContent\"}");
             return null;
           } else if ("resumeContent".equals(name)) {
-            runOnUiThread(() -> {
-              try {
-                WebView w = findWebView((ViewGroup) getWindow().getDecorView().findViewById(android.R.id.content));
-                if (w != null) {
-                  w.onResume();
-                  Log.i(TAG, "WebView resumed by EMAds controller (proxy)");
-                }
-              } catch (Exception ex) {
-                Log.i(TAG, "resumeContent failed: " + ex.getMessage());
-              }
-            });
+            Log.i(TAG, "resumeContent requested by SDK, forwarding to web layer");
+            sendEventToWeb("resumeContent", "{\"message\":\"resumeContent\"}");
             return null;
           }
           return null;
