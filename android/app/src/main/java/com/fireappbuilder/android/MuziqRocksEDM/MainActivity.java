@@ -176,6 +176,51 @@ public class MainActivity extends BridgeActivity {
         EMAdViewClass.getMethod("loadAd").invoke(adView);
       } catch (NoSuchMethodException ignored) {}
 
+      // Attempt to explicitly request/show a debug ad via any debug-related reflective method
+      try {
+        boolean invoked = false;
+        for (Method m : EMAdViewClass.getMethods()) {
+          String n = m.getName().toLowerCase();
+          if (n.contains("debug") && (n.contains("ad") || n.contains("play") || n.contains("show") || n.contains("request"))) {
+            try {
+              m.invoke(adView);
+              Log.i(TAG, "Invoked debug method on EMAdView: " + m.getName());
+              sendEventToWeb("debugAdRequested", "{\"method\":\"" + m.getName() + "\"}");
+              invoked = true;
+              break;
+            } catch (Exception ex) {
+              Log.w(TAG, "debug invoke failed on EMAdView method: " + m.getName(), ex);
+            }
+          }
+        }
+        if (!invoked) {
+          // try module-level methods
+          for (Method m : EMAdsModuleClass.getMethods()) {
+            String n = m.getName().toLowerCase();
+            if (n.contains("debug") && (n.contains("ad") || n.contains("request") || n.contains("play") || n.contains("show"))) {
+              try {
+                // try invoking with input if it accepts one param, otherwise no-arg
+                if (m.getParameterTypes().length == 1) m.invoke(null, input);
+                else m.invoke(null);
+                Log.i(TAG, "Invoked debug method on EMAdsModule: " + m.getName());
+                sendEventToWeb("debugAdRequested", "{\"method\":\"" + m.getName() + "\"}");
+                invoked = true;
+                break;
+              } catch (Exception ex) {
+                Log.w(TAG, "debug invoke failed on EMAdsModule method: " + m.getName(), ex);
+              }
+            }
+          }
+        }
+        if (!invoked) {
+          Log.i(TAG, "No explicit debug ad method found via reflection");
+          sendEventToWeb("debugAdNotSupported", "{\"message\":\"no debug method found\"}");
+        }
+      } catch (Throwable t) {
+        Log.e(TAG, "debug ad reflective call failed", t);
+        sendEventToWeb("debugAdError", "{\"message\":\"" + t.getMessage().replace("\"", "\\\"") + "\"}");
+      }
+
     } catch (ClassNotFoundException e) {
       Log.i(TAG, "EMAds SDK classes not found on classpath: " + e.getMessage());
       showToast("EMAds SDK not on classpath");
