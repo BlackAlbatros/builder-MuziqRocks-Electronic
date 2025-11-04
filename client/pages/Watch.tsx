@@ -179,8 +179,12 @@ export default function WatchPage() {
   // Native SDK ad indicator (triggered by emads events from native MainActivity)
   const [nativeAdActive, setNativeAdActive] = useState(false);
   const [nativeAdSeconds, setNativeAdSeconds] = useState(30);
+  const [nativeAdUrl, setNativeAdUrl] = useState<string | null>(null);
+  const adVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  function startSimulatedAd() {
+  const DEBUG_AD_URL = (import.meta.env.VITE_DEBUG_AD_URL as string) || "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4";
+
+  function startSimulatedAd(duration = 30, url?: string) {
     try {
       const vid = videoRef.current;
       if (vid && !vid.paused) vid.pause();
@@ -188,11 +192,14 @@ export default function WatchPage() {
       // ignore
     }
     setSimAdActive(true);
-    setSimAdSeconds(30);
+    setSimAdSeconds(duration || 30);
+    setNativeAdUrl(url ?? null);
     showToast({
       title: "Ad (simulated)",
       description: "Debug ad playing — 30s",
     });
+
+    // Start countdown
     const iv = window.setInterval(() => {
       setSimAdSeconds((s) => {
         if (s <= 1) {
