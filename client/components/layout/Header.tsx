@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import React, { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
