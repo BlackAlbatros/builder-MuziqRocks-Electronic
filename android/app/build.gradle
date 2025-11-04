@@ -55,6 +55,51 @@ dependencies {
 
 apply from: 'capacitor.build.gradle'
 
+// Task: download engage-ads-sdk zip from provided CDN and extract jars/aar into android/app/libs
+import java.util.zip.ZipInputStream
+
+task downloadEngageSdk {
+    doLast {
+        def libsDir = file('libs')
+        if (!libsDir.exists()) libsDir.mkdirs()
+        // If a known jar already exists, skip download
+        def existing = libsDir.listFiles().find { it.name == 'engage-ads-sdk.jar' || it.name == 'engage-ads-sdk-v1.1.0-alpha.jar' || it.name.endsWith('.aar') }
+        if (existing) {
+            println "Engage SDK already present in libs: ${existing.name}"
+            return
+        }
+        def zipUrl = new URL('https://cdn.builder.io/o/assets%2F75422943980645d28df141712104f45a%2F8965cbf1547d4ee699c4621b965e8ad4?alt=media&token=40cab13b-257b-4bf0-b5b6-f1be64dde58b&apiKey=75422943980645d28df141712104f45a')
+        println "Downloading Engage SDK from ${zipUrl}"
+        def conn = zipUrl.openConnection()
+        conn.setRequestProperty('User-Agent','Gradle')
+        conn.connect()
+        def zis = new ZipInputStream(conn.getInputStream())
+        def entry = zis.getNextEntry()
+        while (entry != null) {
+            if (!entry.isDirectory()) {
+                def name = new File(entry.getName()).getName()
+                if (name.endsWith('.jar') || name.endsWith('.aar')) {
+                    def out = new File(libsDir, name)
+                    out.withOutputStream { os ->
+                        byte[] buffer = new byte[8192]
+                        int len
+                        while ((len = zis.read(buffer)) > 0) {
+                            os.write(buffer, 0, len)
+                        }
+                    }
+                    println "Extracted ${name} to libs/"
+                }
+            }
+            zis.closeEntry()
+            entry = zis.getNextEntry()
+        }
+        zis.close()
+    }
+}
+
+// Ensure SDK is downloaded before building the app
+preBuild.dependsOn downloadEngageSdk
+
 try {
     def servicesJSON = file('google-services.json')
     if (servicesJSON.text) {
