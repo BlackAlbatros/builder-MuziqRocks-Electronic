@@ -114,6 +114,13 @@ export default function WatchPage() {
             payload && payload.duration ? Number(payload.duration) : 30;
           setNativeAdSeconds(duration || 30);
           setNativeAdActive(true);
+          // if native SDK provided an ad URL, use it
+          try {
+            const possibleUrl = (payload && (payload.adUrl || payload.url || payload.videoUrl)) || null;
+            setNativeAdUrl(possibleUrl);
+          } catch (e) {
+            setNativeAdUrl(null);
+          }
 
           // start countdown timer (single global interval slot)
           try {
