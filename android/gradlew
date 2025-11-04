@@ -9,8 +9,14 @@ if [ ! -f "$WRAPPER_JAR" ]; then
 fi
 
 if [ ! -f "$WRAPPER_JAR" ]; then
-  echo "Failed to obtain gradle-wrapper.jar. Please ensure you have Gradle installed and run 'gradle wrapper' inside the android directory." >&2
-  exit 1
+  echo "Failed to obtain gradle-wrapper.jar — attempting to fallback to system 'gradle' command."
+  if command -v gradle >/dev/null 2>&1; then
+    echo "Using system gradle."
+    exec gradle "$@"
+  else
+    echo "Gradle wrapper not found and 'gradle' command is not installed. Please install Gradle or ensure gradle-wrapper.jar exists." >&2
+    exit 1
+  fi
 fi
 
 exec java -jar "$WRAPPER_JAR" "$@"
