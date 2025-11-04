@@ -410,12 +410,37 @@ export default function WatchPage() {
           {/* Ad overlay: shown for native SDK ad or simulated ad */}
           {(nativeAdActive || simAdActive) && (
             <div className="absolute inset-0 z-70 flex items-center justify-center bg-black/80">
-              <div className="text-center text-white">
-                <div className="text-2xl font-bold mb-2">
-                  {nativeAdActive ? "Native SDK Ad (debug)" : "Ad (simulated)"}
-                </div>
-                <div className="text-sm">
-                  {nativeAdActive ? `${nativeAdSeconds}s` : `${simAdSeconds}s`}
+              <div className="max-w-3xl w-full px-4">
+                <div className="bg-black rounded-md overflow-hidden shadow-xl">
+                  <video
+                    ref={adVideoRef}
+                    src={nativeAdActive ? (nativeAdUrl || DEBUG_AD_URL) : (nativeAdUrl || DEBUG_AD_URL)}
+                    autoPlay
+                    playsInline
+                    controls
+                    className="w-full h-auto bg-black"
+                    onEnded={() => {
+                      // End ad and resume content
+                      setNativeAdActive(false);
+                      setSimAdActive(false);
+                      try {
+                        const v = videoRef.current;
+                        if (v && v.paused) v.play();
+                      } catch (e) {}
+                    }}
+                    onClick={() => {
+                      // simulate ad tapped
+                      showToast({ title: "EMAds", description: "Ad tapped" });
+                    }}
+                  />
+                  <div className="p-3 text-white flex items-center justify-between">
+                    <div className="font-medium">
+                      {nativeAdActive ? "Native SDK Ad (debug)" : "Ad (simulated)"}
+                    </div>
+                    <div className="text-sm opacity-90">
+                      {nativeAdActive ? `${nativeAdSeconds}s` : `${simAdSeconds}s`}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
