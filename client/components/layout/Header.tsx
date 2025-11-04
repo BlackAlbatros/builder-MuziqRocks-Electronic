@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 
 const LOGO_URL =
@@ -26,7 +28,7 @@ export function Header() {
     );
   }
 
-  return (
+  const headerEl = (
     <header
       className={`fixed top-0 left-0 right-0 z-40 border-b backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70`}
       style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}
@@ -72,4 +74,7 @@ export function Header() {
       </div>
     </header>
   );
+
+  if (typeof document === 'undefined') return null;
+  return createPortal(headerEl, document.body);
 }
