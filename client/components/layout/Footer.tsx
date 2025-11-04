@@ -2,7 +2,7 @@ import React from "react";
 
 export function Footer() {
   return (
-    <footer className="mt-10 bg-yellow-400 text-black">
+    <footer style={{ backgroundColor: '#f8a11b' }} className="mt-10 text-black">
       <div className="container mx-auto px-4 py-4 flex items-center justify-center gap-6">
         <a
           href="https://music.apple.com/md/artist/muziqrocks/1824742571"
@@ -56,6 +56,11 @@ export function Footer() {
             className="h-8 w-8 object-contain"
           />
         </a>
+      </div>
+      <div className="border-t border-black/10">
+        <div className="container mx-auto px-4 py-3 text-center text-sm text-black">
+          © 2025 MuziqRocks. All rights reserved. Powered by Muziq.Rocks
+        </div>
       </div>
     </footer>
   );
