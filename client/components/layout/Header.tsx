@@ -28,16 +28,16 @@ export function Header() {
   }
 
   useEffect(() => {
-    if (typeof document === 'undefined') return;
-    const id = 'muziq-header-style';
+    if (typeof document === "undefined") return;
+    const id = "muziq-header-style";
     if (!document.getElementById(id)) {
-      const s = document.createElement('style');
+      const s = document.createElement("style");
       s.id = id;
       s.innerHTML = `#muziq-header { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 10000 !important; } body { padding-top: 4rem !important; }`;
       document.head.appendChild(s);
     }
     return () => {
-      const s = document.getElementById('muziq-header-style');
+      const s = document.getElementById("muziq-header-style");
       if (s) s.remove();
     };
   }, []);
