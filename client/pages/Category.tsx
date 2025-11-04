@@ -57,16 +57,10 @@ function VideoCard({ item }: { item: FeedItem }) {
       tabIndex={0}
       className="group block overflow-hidden rounded-lg border bg-card hover:shadow-lg transition relative outline-none focus:ring-4 focus:ring-primary"
     >
-      <img
-        src={item.thumbnail}
-        alt={item.title}
-        className="aspect-video w-full object-cover group-hover:opacity-90"
-      />
-      <span className="absolute right-2 top-2 rounded bg-black/70 px-2 py-0.5 text-xs text-white">
-        {formatDuration(item.content.duration)}
-      </span>
+      <img src={item.thumbnail} alt={item.title} className="w-full" />
       <div className="p-3">
-        <h3 className="line-clamp-2 font-medium">{item.title}</h3>
+        <h3 className="font-semibold">{item.title}</h3>
+        <p className="text-sm text-muted-foreground">{formatDuration(item.duration)}</p>
       </div>
     </RouterLink>
   );
