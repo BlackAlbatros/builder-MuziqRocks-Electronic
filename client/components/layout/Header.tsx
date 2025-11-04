@@ -27,8 +27,24 @@ export function Header() {
     );
   }
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    const id = 'muziq-header-style';
+    if (!document.getElementById(id)) {
+      const s = document.createElement('style');
+      s.id = id;
+      s.innerHTML = `#muziq-header { position: fixed !important; top: 0 !important; left: 0 !important; right: 0 !important; z-index: 10000 !important; } body { padding-top: 4rem !important; }`;
+      document.head.appendChild(s);
+    }
+    return () => {
+      const s = document.getElementById('muziq-header-style');
+      if (s) s.remove();
+    };
+  }, []);
+
   const headerEl = (
     <header
+      id="muziq-header"
       className={`fixed top-0 left-0 right-0 z-40 border-b backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70`}
       style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}
     >
