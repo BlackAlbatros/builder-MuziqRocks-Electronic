@@ -31,7 +31,7 @@ export function Header() {
   const headerEl = (
     <header
       className={`fixed top-0 left-0 right-0 z-40 border-b backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70`}
-      style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 1000 }}
+      style={{ position: "fixed", top: 0, left: 0, right: 0, zIndex: 1000 }}
     >
       <div className="container mx-auto flex items-center gap-3 py-3">
         <div className="flex items-center">
@@ -75,6 +75,6 @@ export function Header() {
     </header>
   );
 
-  if (typeof document === 'undefined') return null;
+  if (typeof document === "undefined") return null;
   return createPortal(headerEl, document.body);
 }

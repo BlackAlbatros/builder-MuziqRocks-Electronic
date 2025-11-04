@@ -11,7 +11,10 @@ export default function WatchPage() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showHome, setShowHome] = useState(false);
   const homeLinkRef = useRef<HTMLAnchorElement | null>(null);
-  const videoStateRef = useRef<{ wasPlaying: boolean; wasMuted: boolean }>({ wasPlaying: false, wasMuted: false });
+  const videoStateRef = useRef<{ wasPlaying: boolean; wasMuted: boolean }>({
+    wasPlaying: false,
+    wasMuted: false,
+  });
 
   useEffect(() => {
     // Intercept native back button: show Home overlay instead of navigating away immediately
@@ -80,7 +83,10 @@ export default function WatchPage() {
           try {
             const v = videoRef.current;
             if (v) {
-              videoStateRef.current = { wasPlaying: !v.paused, wasMuted: v.muted };
+              videoStateRef.current = {
+                wasPlaying: !v.paused,
+                wasMuted: v.muted,
+              };
               v.pause();
               v.muted = true;
             }
@@ -93,7 +99,8 @@ export default function WatchPage() {
             const v = videoRef.current;
             if (v) {
               v.muted = videoStateRef.current.wasMuted;
-              if (videoStateRef.current.wasPlaying && v.paused) v.play().catch(() => {});
+              if (videoStateRef.current.wasPlaying && v.paused)
+                v.play().catch(() => {});
             }
           } catch (err) {
             console.warn("resumeContent handling failed", err);
@@ -289,11 +296,14 @@ export default function WatchPage() {
 
     if (nativeAdActive || simAdActive) {
       try {
-        videoStateRef.current = { wasPlaying: !vid.paused, wasMuted: vid.muted };
+        videoStateRef.current = {
+          wasPlaying: !vid.paused,
+          wasMuted: vid.muted,
+        };
         vid.pause();
         vid.muted = true;
       } catch (err) {
-        console.warn('failed to pause/mute video for ad', err);
+        console.warn("failed to pause/mute video for ad", err);
       }
     } else {
       try {
@@ -302,7 +312,7 @@ export default function WatchPage() {
           vid.play().catch(() => {});
         }
       } catch (err) {
-        console.warn('failed to restore video state after ad', err);
+        console.warn("failed to restore video state after ad", err);
       }
     }
   }, [nativeAdActive, simAdActive]);
