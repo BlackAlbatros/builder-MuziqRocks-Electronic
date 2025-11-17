@@ -29,6 +29,7 @@
   "dependencies": {
     "@capacitor/core": "^6.2.0",
     "dotenv": "^17.2.1",
+    "engage-ads-sdk": "github:engage-media/engage-ads-sdk",
     "express": "^5.1.0",
     "zod": "^3.25.76"
   },

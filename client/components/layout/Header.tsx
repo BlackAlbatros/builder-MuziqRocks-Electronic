@@ -7,11 +7,24 @@ const LOGO_URL =
 export function Header() {
   const [params] = useSearchParams();
   const [q, setQ] = useState(params.get("q") ?? "");
+  const [isHidden, setIsHidden] = useState(false);
+  const [lastScrollY, setLastScrollY] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
     setQ(params.get("q") ?? "");
   }, [params]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+      setIsHidden(currentScrollY > lastScrollY && currentScrollY > 100);
+      setLastScrollY(currentScrollY);
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, [lastScrollY]);
 
   function applySearch(value: string) {
     setQ(value);
@@ -22,7 +35,16 @@ export function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70 border-b">
+    <header
+      className="sticky top-0 z-40 backdrop-blur supports-[backdrop-filter]:bg-background/80 bg-background/70 border-b transition-transform duration-300 ease-in-out"
+      style={{
+        position: "sticky",
+        top: 0,
+        display: "block",
+        width: "100%",
+        transform: isHidden ? "translateY(-100%)" : "translateY(0)",
+      }}
+    >
       <div className="container mx-auto flex items-center gap-3 py-3">
         <div className="flex items-center">
           <img

@@ -14,6 +14,9 @@ importers:
       dotenv:
         specifier: ^17.2.1
         version: 17.2.1
+      engage-ads-sdk:
+        specifier: github:engage-media/engage-ads-sdk
+        version: https://codeload.github.com/engage-media/engage-ads-sdk/tar.gz/295469b21dcf3c42905f027bb6e6d790b8801054
       express:
         specifier: ^5.1.0
         version: 5.1.0
@@ -2044,6 +2047,10 @@ packages:
   encodeurl@2.0.0:
     resolution: {integrity: sha512-Q0n9HRi4m6JuGIV1eFlmvJB7ZEVxu93IrMyiMsGC0lrMJMWzRgx6WGquyfQgZVb31vhGgXnfmPNNXmxnOkRBrg==}
     engines: {node: '>= 0.8'}
+
+  engage-ads-sdk@https://codeload.github.com/engage-media/engage-ads-sdk/tar.gz/295469b21dcf3c42905f027bb6e6d790b8801054:
+    resolution: {tarball: https://codeload.github.com/engage-media/engage-ads-sdk/tar.gz/295469b21dcf3c42905f027bb6e6d790b8801054}
+    version: 0.0.0
 
   env-paths@2.2.1:
     resolution: {integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==}
@@ -5092,6 +5099,8 @@ snapshots:
   emoji-regex@9.2.2: {}
 
   encodeurl@2.0.0: {}
+
+  engage-ads-sdk@https://codeload.github.com/engage-media/engage-ads-sdk/tar.gz/295469b21dcf3c42905f027bb6e6d790b8801054: {}
 
   env-paths@2.2.1: {}
 

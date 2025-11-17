@@ -12,6 +12,7 @@ import CategoryPage from "./pages/Category";
 import WatchPage from "./pages/Watch";
 import { Header } from "./components/layout/Header";
 import { Splash } from "./components/layout/Splash";
+import { Footer } from "./components/layout/Footer";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Footer />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
