@@ -10,6 +10,7 @@ export default function WatchPage() {
   const videoId = params.id ? decodeURIComponent(params.id) : "";
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const adContainerRef = useRef<HTMLDivElement | null>(null);
   const homeLinkRef = useRef<HTMLAnchorElement | null>(null);
   const videoStateRef = useRef<{ wasPlaying: boolean; wasMuted: boolean }>({
     wasPlaying: false,
@@ -19,6 +20,33 @@ export default function WatchPage() {
   const [showHome, setShowHome] = useState(false);
 
   const { data, isLoading, error } = useFeedQuery();
+
+  // Initialize VAST ads
+  const { adsInitialized, isPlayingAd } = useVastAds({
+    videoRef,
+    containerRef: adContainerRef,
+    vastUrlParams: {
+      appName: "MuziqRocks",
+      appBundle: "rocks.muziq.electronic",
+      appCategory: "music",
+      pubId: "muziq_rocks",
+    },
+    onPreRollStart: () => {
+      console.log("Pre-roll ad starting");
+    },
+    onPreRollEnd: () => {
+      console.log("Pre-roll ad ended");
+    },
+    onMidRollStart: () => {
+      console.log("Mid-roll ad starting");
+    },
+    onMidRollEnd: () => {
+      console.log("Mid-roll ad ended");
+    },
+    onAdError: (error: any) => {
+      console.error("Ad error:", error);
+    },
+  });
 
   useEffect(() => {
     // Focus home link when overlay is shown
