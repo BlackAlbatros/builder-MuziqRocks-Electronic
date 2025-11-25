@@ -26,9 +26,8 @@ export default function WatchPage() {
   const { data, isLoading, error } = useFeedQuery();
 
   // Initialize VAST ads
-  const { adsInitialized, isPlayingAd } = useVastAds({
+  const { adsInitialized, isPlayingAd } = useSimpleVastAds({
     videoRef,
-    containerRef: adContainerRef,
     vastUrlParams: {
       appName: "MuziqRocks",
       appBundle: "rocks.muziq.electronic",
