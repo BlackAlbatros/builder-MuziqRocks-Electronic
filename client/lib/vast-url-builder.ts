@@ -44,36 +44,48 @@ export function buildVastUrl(params: VastUrlParams = {}): string {
   // Geographic parameters
   urlParams.append("country", params.country || "US");
 
-  // Device information
-  urlParams.append("ua", params.userAgent || navigator.userAgent);
-  urlParams.append("device_model", params.deviceModel || getDeviceModel());
+  // Prepare replacement values for placeholder tags
+  const width = String(params.width || window.innerWidth);
+  const height = String(params.height || window.innerHeight);
+  const deviceId = generateDeviceId();
+  const cacheBuster = String(params.cacheBuster || Date.now());
+  const userAgent = encodeURIComponent(params.userAgent || navigator.userAgent);
+  const usPrivacy = params.usPrivacy || "1YYN";
+  const gdpr = params.gdpr || "0";
+  const gdprConsent = params.gdprConsent || "";
+  const playbackMethods = "[PLAYBACKMETHODS]";
+  const continuousPlay = "[CONTINUOUSPLAY]";
+  const timeSinceInteraction = "[TIMESINCEINTERACTION]";
 
-  // Privacy parameters
-  urlParams.append("gdpr", params.gdpr || "0");
-  urlParams.append("gdpr_consent", params.gdprConsent || "");
-  urlParams.append("us_privacy", params.usPrivacy || "1YYN");
-  urlParams.append("dnt", params.dnt || "0");
+  // Replace placeholder tags in the VAST URL
+  vastUrl = vastUrl
+    .replace(/\[WIDTH\]/g, width)
+    .replace(/\[HEIGHT\]/g, height)
+    .replace(/\[APP_NAME\]/g, params.appName || "MuziqRocks")
+    .replace(/\[APP_BUNDLE_ID\]/g, params.appBundle || "rocks.muziq.electronic")
+    .replace(/\[APP_STORE_URL\]/g, encodeURIComponent(params.appURL || window.location.origin))
+    .replace(/\[APP_CATEGORY\]/g, params.appCategory || "music")
+    .replace(/\[APP_ID\]/g, deviceId)
+    .replace(/\[PUBID\]/g, params.pubId || "muziq_rocks")
+    .replace(/\[COUNTRY\]/g, params.country || "US")
+    .replace(/\[USER_AGENT\]/g, userAgent)
+    .replace(/\[DEVICE_MODEL\]/g, params.deviceModel || getDeviceModel())
+    .replace(/\[IP_ADDRESS\]/g, params.ipAddress || "")
+    .replace(/\[LAT\]/g, params.latitude || "")
+    .replace(/\[LON\]/g, params.longitude || "")
+    .replace(/\[IFA\]/g, params.ifa || "")
+    .replace(/\[US_PRIVACY\]/g, usPrivacy)
+    .replace(/\[DNT\]/g, params.dnt || "0")
+    .replace(/\[GDPR\]/g, gdpr)
+    .replace(/\[GDPR_CONSENT\]/g, gdprConsent)
+    .replace(/\[GDPR_CONSENT_78\]/g, gdprConsent) // Some systems use numbered placeholders
+    .replace(/\[CACHEBUSTER\]/g, cacheBuster)
+    .replace(/\[PLAYBACKMETHODS\]/g, playbackMethods)
+    .replace(/\[CONTINUOUSPLAY\]/g, continuousPlay)
+    .replace(/\[TIMESINCEINTERACTION\]/g, timeSinceInteraction);
 
-  // Cache buster for freshness
-  urlParams.append("cb", params.cacheBuster || String(Date.now()));
-
-  // IP address (web cannot access this, so it's left to the ads company to fill)
-  if (params.ipAddress) {
-    urlParams.append("ip", params.ipAddress);
-  }
-
-  // Location (requires user permission)
-  if (params.latitude && params.longitude) {
-    urlParams.append("lat", params.latitude);
-    urlParams.append("lon", params.longitude);
-  }
-
-  // IFA (Identifier for Advertisers - requires user permission)
-  if (params.ifa) {
-    urlParams.append("ifa", params.ifa);
-  }
-
-  return `${BASE_VAST_URL}&${urlParams.toString()}`;
+  console.log("[VAST URL Builder] Final VAST URL:", vastUrl);
+  return vastUrl;
 }
 
 /**
