@@ -280,29 +280,40 @@ export function useVastAds({
   };
 
   const requestAds = (isPreRoll: boolean) => {
+    console.log(`[VAST] requestAds called for ${isPreRoll ? "pre-roll" : "mid-roll"}`);
+
     if (!adsLoaderRef.current || !adDisplayContainerRef.current) {
-      console.warn("Ads loader or container not initialized");
+      console.warn("[VAST] Ads loader or container not initialized");
       return;
     }
 
     try {
       const google = window.google;
-      if (!google?.ima) return;
+      if (!google?.ima) {
+        console.warn("[VAST] google.ima not available when requesting ads");
+        return;
+      }
 
+      console.log("[VAST] Creating AdsRequest");
       const adsRequest = new google.ima.AdsRequest();
       const vastUrl = buildVastUrl(vastUrlParams);
+      console.log("[VAST] Built VAST URL:", vastUrl);
+
       adsRequest.adTagUrl = vastUrl;
 
       // Event listeners for the request
+      console.log("[VAST] Initializing ad display container");
       adDisplayContainerRef.current.initialize();
 
       if (isPreRoll) {
+        console.log("[VAST] Calling onPreRollStart");
         onPreRollStart?.();
       }
 
+      console.log("[VAST] Requesting ads from loader");
       adsLoaderRef.current.requestAds(adsRequest);
     } catch (error) {
-      console.error("Failed to request ads:", error);
+      console.error("[VAST] Failed to request ads:", error);
       onAdError?.(error);
     }
   };
