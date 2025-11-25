@@ -28,6 +28,8 @@ const BASE_VAST_URL =
   "https://vast.engagemediatv.com/?channel=8bd6fca2&publisher=a8ce40dc";
 
 export function buildVastUrl(params: VastUrlParams = {}): string {
+  console.log("[VAST URL Builder] Building VAST URL with params:", params);
+
   const urlParams = new URLSearchParams();
 
   // Add base parameters
