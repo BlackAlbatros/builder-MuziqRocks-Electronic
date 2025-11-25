@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFeedQuery } from "@/hooks/use-feed-query";
+import { useVastAds } from "@/hooks/use-vast-ads";
 import { toast as showToast } from "@/hooks/use-toast";
 
 export default function WatchPage() {
