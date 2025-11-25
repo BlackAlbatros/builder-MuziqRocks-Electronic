@@ -32,19 +32,19 @@ export default function WatchPage() {
       pubId: "muziq_rocks",
     },
     onPreRollStart: () => {
-      console.log("Pre-roll ad starting");
+      console.log("[Watch] Pre-roll ad starting");
     },
     onPreRollEnd: () => {
-      console.log("Pre-roll ad ended");
+      console.log("[Watch] Pre-roll ad ended");
     },
     onMidRollStart: () => {
-      console.log("Mid-roll ad starting");
+      console.log("[Watch] Mid-roll ad starting");
     },
     onMidRollEnd: () => {
-      console.log("Mid-roll ad ended");
+      console.log("[Watch] Mid-roll ad ended");
     },
     onAdError: (error: any) => {
-      console.error("Ad error:", error);
+      console.error("[Watch] Ad error:", error);
     },
   });
 
