@@ -86,7 +86,7 @@ export function useVastAds({
   onAdError,
 }: UseVastAdsProps) {
   const adsManagerRef = useRef<AdsManager | null>(null);
-  const adsLoaderRef = useRef<AdsLoader | null>(null);
+  const adsLoaderRef = useRef<AdsLoaderType | null>(null);
   const adDisplayContainerRef = useRef<any>(null);
   const midRollTriggeredRef = useRef(false);
   const [adsInitialized, setAdsInitialized] = useState(false);
