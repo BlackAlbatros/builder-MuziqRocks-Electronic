@@ -212,9 +212,11 @@ export function useVastAds({
   ]);
 
   const onAdsManagerLoaded = (event: any) => {
+    console.log("[VAST] onAdsManagerLoaded called");
     try {
       const google = window.google!.ima;
       const viewMode = (google as any).ViewMode?.LINEAR || "linear";
+      console.log("[VAST] ViewMode:", viewMode);
 
       const adsManager = event.getAdsManager(videoRef.current, viewMode);
 
