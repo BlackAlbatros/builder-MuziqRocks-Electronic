@@ -3,6 +3,7 @@ import { Banner } from "@/components/Banner";
 import { Link, useSearchParams } from "react-router-dom";
 import { parseDate, slugify, formatDuration } from "@/lib/utils";
 import { useFeedQuery } from "@/hooks/use-feed-query";
+import { useEffect } from "react";
 
 export default function Index() {
   const { data, isLoading, error } = useFeedQuery();
@@ -41,8 +42,129 @@ export default function Index() {
     ),
   }));
 
+  // Latest: top 3 videos across the feed sorted by dateAdded (newest first)
+  const latest: FeedItem[] = (data?.shortFormVideos ?? [])
+    .slice()
+    .sort(
+      (a, b) =>
+        parseDate(b.content?.dateAdded) - parseDate(a.content?.dateAdded),
+    )
+    .slice(0, 3);
+
+  // Focus first video on load and enable D-pad style navigation
+  useEffect(() => {
+    const focusFirst = () => {
+      const first =
+        document.querySelector<HTMLAnchorElement>("[data-video-card]");
+      if (first) first.focus();
+    };
+    const t = setTimeout(focusFirst, 0);
+    return () => clearTimeout(t);
+  }, [q, data]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const container = document.querySelector<HTMLDivElement>(".container");
+      if (!container) return;
+      // collect focusable elements inside container (links, buttons, cards)
+      const els = Array.from(
+        container.querySelectorAll<HTMLElement>(
+          "a[href], button, [data-video-card], [tabindex]:not([tabindex='-1'])",
+        ),
+      ).filter((el) => {
+        const style = window.getComputedStyle(el);
+        return style.display !== "none" && style.visibility !== "hidden";
+      });
+      if (!els.length) return;
+
+      const active = (document.activeElement as HTMLElement) || els[0];
+
+      const ok = ["Enter", "OK", "Select"].includes(e.key);
+      if (ok && active) {
+        e.preventDefault();
+        (active as HTMLAnchorElement | HTMLElement).click?.();
+        return;
+      }
+
+      // Support both KeyboardEvent.key and numeric keyCode values coming from TV remotes
+      const mapKeyToDir = (ev: KeyboardEvent) => {
+        const k = (ev.key || "").toString();
+        const code = (ev as any).keyCode || (ev as any).which || 0;
+        if (["ArrowRight", "Right"].includes(k) || code === 22)
+          return { x: 1, y: 0 };
+        if (["ArrowLeft", "Left"].includes(k) || code === 21)
+          return { x: -1, y: 0 };
+        if (["ArrowDown", "Down"].includes(k) || code === 20)
+          return { x: 0, y: 1 };
+        if (["ArrowUp", "Up"].includes(k) || code === 19)
+          return { x: 0, y: -1 };
+        return null;
+      };
+
+      const dir = mapKeyToDir(e);
+      if (!dir) return;
+
+      e.preventDefault();
+      const rects = els.map((el) => {
+        const r = el.getBoundingClientRect();
+        return { el, r, cx: r.left + r.width / 2, cy: r.top + r.height / 2 };
+      });
+      const activeRect = active.getBoundingClientRect();
+      const ax = activeRect.left + activeRect.width / 2;
+      const ay = activeRect.top + activeRect.height / 2;
+
+      // Filter candidates in the direction
+      const candidates = rects.filter(({ r, cx, cy }) => {
+        if (dir.x === 1) return cx > ax + 4; // right
+        if (dir.x === -1) return cx < ax - 4; // left
+        if (dir.y === 1) return cy > ay + 4; // down
+        if (dir.y === -1) return cy < ay - 4; // up
+        return false;
+      });
+      if (!candidates.length) return;
+
+      // score by angular/distance preference
+      const scored = candidates.map((c) => {
+        const dx = c.cx - ax;
+        const dy = c.cy - ay;
+        const dot = dx * dir.x + dy * dir.y;
+        const dist = Math.hypot(dx, dy);
+        const score = dot / (dist + 1e-6) - dist * 0.01;
+        return { c, score };
+      });
+      scored.sort((a, b) => b.score - a.score);
+      let best = scored[0]?.c?.el as HTMLElement | undefined;
+
+      // Fallback: if no spatial candidate, move in DOM order
+      if (!best) {
+        const idx = els.indexOf(active);
+        if (dir.y === 1) {
+          best = els[Math.min(idx + 1, els.length - 1)];
+        } else if (dir.y === -1) {
+          best = els[Math.max(idx - 1, 0)];
+        } else if (dir.x === 1) {
+          best = els[Math.min(idx + 1, els.length - 1)];
+        } else if (dir.x === -1) {
+          best = els[Math.max(idx - 1, 0)];
+        }
+      }
+
+      if (best) {
+        best.focus();
+        // ensure focused element is visible (centered)
+        try {
+          best.scrollIntoView({ block: "center", behavior: "smooth" });
+        } catch (err) {
+          best.scrollIntoView();
+        }
+      }
+    };
+    document.addEventListener("keydown", handler);
+    return () => document.removeEventListener("keydown", handler);
+  }, [q, data]);
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-background via-background to-black/20">
+    <main className="min-h-screen bg-gradient-to-b from-background via-background to-black/20 pb-20">
       <div className="container mx-auto px-4 py-6 space-y-8">
         <Banner total={total} />
 
@@ -81,6 +203,19 @@ export default function Index() {
           </section>
         )}
 
+        {!q && latest.length > 0 && (
+          <section className="space-y-4">
+            <div className="flex items-center justify-between rounded-md bg-black/30 px-3 py-2">
+              <h2 className="text-lg md:text-xl font-bold">Latest</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {latest.map((item) => (
+                <VideoCard key={item.id} item={item} />
+              ))}
+            </div>
+          </section>
+        )}
+
         {!q &&
           categories.map(({ name, slug, items }) => (
             <section key={slug} className="space-y-4">
@@ -111,7 +246,10 @@ function VideoCard({ item }: { item: FeedItem }) {
   return (
     <Link
       to={watchHref}
-      className="group block overflow-hidden rounded-xl border bg-card hover:shadow-lg transition relative"
+      data-video-card
+      tabIndex={0}
+      className="group block overflow-hidden rounded-xl border bg-card hover:shadow-lg transition relative outline-none focus:ring-4 focus:ring-primary"
+      aria-label={`Open ${item.title}`}
     >
       <img
         src={item.thumbnail}

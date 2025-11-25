@@ -47,8 +47,9 @@ async function fetchWithTimeout(
   try {
     return await fetch(url, { ...opts, signal: ctrl.signal });
   } catch (err: any) {
+    // Normalize AbortError to a regular Error so callers can handle it predictably.
     if (err?.name === "AbortError") {
-      return await fetch(url, opts);
+      throw new Error("Fetch timed out or was aborted");
     }
     throw err;
   } finally {

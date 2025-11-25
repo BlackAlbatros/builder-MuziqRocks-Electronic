@@ -38,6 +38,7 @@ export interface FeedItem {
 
 export interface FeedResponse {
   providerName: string;
+  vastUrl?: string; // VAST ad tag URL with placeholder parameters
   lastUpdated: string;
   language: string;
   shortFormVideos: FeedItem[];

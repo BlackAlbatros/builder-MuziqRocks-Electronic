@@ -1,34 +1,104 @@
-import { useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useFeedQuery } from "@/hooks/use-feed-query";
-import { Capacitor } from "@capacitor/core";
+import { useSimpleVastAds } from "@/hooks/use-simple-vast-ads";
+import { toast as showToast } from "@/hooks/use-toast";
 
 export default function WatchPage() {
+  console.log("[Watch] Component mounted");
+
   const navigate = useNavigate();
-  const params = useParams<{ id?: string }>();
+  const params = useParams();
   const videoId = params.id ? decodeURIComponent(params.id) : "";
 
+  console.log("[Watch] Video ID:", videoId);
+
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const homeLinkRef = useRef<HTMLAnchorElement | null>(null);
+  const videoStateRef = useRef<{ wasPlaying: boolean; wasMuted: boolean }>({
+    wasPlaying: false,
+    wasMuted: false,
+  });
+
+  const [showHome, setShowHome] = useState(false);
+
+  const { data, isLoading, error } = useFeedQuery();
+
+  // Initialize VAST ads
+  const { adsInitialized, isPlayingAd } = useSimpleVastAds({
+    videoRef,
+    vastUrlParams: {
+      baseVastUrl: data?.vastUrl,
+      appName: "MuziqRocks",
+      appBundle: "rocks.muziq.electronic",
+      appCategory: "music",
+      pubId: "muziq_rocks",
+    },
+    onPreRollStart: () => {
+      console.log("[Watch] Pre-roll ad starting");
+    },
+    onPreRollEnd: () => {
+      console.log("[Watch] Pre-roll ad ended");
+    },
+    onMidRollStart: () => {
+      console.log("[Watch] Mid-roll ad starting");
+    },
+    onMidRollEnd: () => {
+      console.log("[Watch] Mid-roll ad ended");
+    },
+    onAdError: (error: any) => {
+      console.error("[Watch] Ad error:", error);
+    },
+  });
+
   useEffect(() => {
-    const handleBackButton = async () => {
-      if (Capacitor?.isNativePlatform?.()) {
-        try {
-          const core = await import("@capacitor/core");
-          const AppClass = (core as any).App;
-          if (AppClass?.addListener) {
-            const listener = AppClass.addListener("backButton", () => {
-              navigate(-1);
-              listener?.remove?.();
-            });
-          }
-        } catch (err) {
-          console.warn("Back button handler setup failed", err);
+    // Focus home link when overlay is shown
+    if (showHome && homeLinkRef.current) homeLinkRef.current.focus();
+  }, [showHome]);
+
+  useEffect(() => {
+    // Keyboard handlers for remote/keyboard play/pause and back
+    const onKey = (e: KeyboardEvent) => {
+      const backKeys = ["Backspace", "Escape", "BrowserBack"];
+      const mediaKeys = [85, 127, 126, 23, 66];
+      const code = (e as any).keyCode || (e as any).which || 0;
+      const vid = videoRef.current;
+
+      if (backKeys.includes(e.key)) {
+        e.preventDefault();
+        navigate("/");
+        return;
+      }
+
+      if (
+        mediaKeys.includes(code) ||
+        ["MediaPlayPause", "MediaPause", "MediaPlay"].includes(e.key) ||
+        ["Enter", "OK", "Select", " "].includes(e.key)
+      ) {
+        e.preventDefault();
+        if (vid) {
+          if (vid.paused) vid.play();
+          else vid.pause();
         }
       }
     };
-    handleBackButton();
+
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
   }, [navigate]);
 
-  const { data, isLoading, error } = useFeedQuery();
+  useEffect(() => {
+    const vid = videoRef.current;
+    if (!vid) return;
+    const onPause = () => setShowHome(true);
+    const onPlay = () => setShowHome(false);
+    vid.addEventListener("pause", onPause);
+    vid.addEventListener("play", onPlay);
+    return () => {
+      vid.removeEventListener("pause", onPause);
+      vid.removeEventListener("play", onPlay);
+    };
+  }, [videoId]);
 
   if (!videoId) {
     return (
@@ -44,11 +114,8 @@ export default function WatchPage() {
     );
   }
 
-  if (isLoading) {
-    return <div className="p-6">Loading…</div>;
-  }
-
-  if (error || !data) {
+  if (isLoading) return <div className="p-6">Loading…</div>;
+  if (error || !data)
     return (
       <div className="container mx-auto px-4 py-6 space-y-4">
         <p className="text-destructive">Failed to load video.</p>
@@ -60,10 +127,9 @@ export default function WatchPage() {
         </Link>
       </div>
     );
-  }
 
   const video = data.shortFormVideos.find((item) => item.id === videoId);
-  if (!video) {
+  if (!video)
     return (
       <div className="container mx-auto px-4 py-6 space-y-4">
         <p className="text-destructive">Video not found.</p>
@@ -75,7 +141,6 @@ export default function WatchPage() {
         </Link>
       </div>
     );
-  }
 
   const source = video.content?.videos?.[0]?.url;
 
@@ -84,6 +149,7 @@ export default function WatchPage() {
       {source ? (
         <>
           <video
+            ref={videoRef}
             key={video.id}
             controls
             autoPlay
@@ -94,32 +160,30 @@ export default function WatchPage() {
           >
             Your browser does not support HTML5 video.
           </video>
-          <div className="absolute bottom-0 left-0 right-0 flex items-center gap-2 bg-gradient-to-t from-black to-transparent p-4">
-            <button
-              type="button"
-              onClick={() => navigate(-1)}
-              className="rounded-md bg-white/20 px-3 py-2 text-sm font-medium text-white hover:bg-white/30"
-            >
-              ← Back
-            </button>
-            <Link
-              to="/"
-              className="rounded-md bg-white/20 px-3 py-2 text-sm font-medium text-white hover:bg-white/30"
-            >
-              Home
-            </Link>
-          </div>
+
+          {showHome && (
+            <div className="absolute left-4 bottom-20 z-60">
+              <Link
+                to="/"
+                ref={homeLinkRef}
+                data-home-link
+                tabIndex={0}
+                className="rounded-md bg-white/20 px-5 py-2 text-sm font-medium text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white"
+              >
+                Home
+              </Link>
+            </div>
+          )}
         </>
       ) : (
         <div className="flex flex-col items-center justify-center space-y-4">
           <p className="text-white">No video source available for this item.</p>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="rounded-md bg-white/20 px-3 py-2 text-sm font-medium text-white hover:bg-white/30"
+          <Link
+            to="/"
+            className="inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
           >
-            ← Back
-          </button>
+            Home
+          </Link>
         </div>
       )}
     </div>
