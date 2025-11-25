@@ -28,6 +28,7 @@ export default function WatchPage() {
   const { adsInitialized, isPlayingAd } = useSimpleVastAds({
     videoRef,
     vastUrlParams: {
+      baseVastUrl: data?.vastUrl,
       appName: "MuziqRocks",
       appBundle: "rocks.muziq.electronic",
       appCategory: "music",
