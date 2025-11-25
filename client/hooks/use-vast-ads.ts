@@ -9,12 +9,24 @@ declare global {
           container: HTMLElement,
           video: HTMLVideoElement,
         ) => any;
-        AdsLoader: new (container: any) => any;
+        AdsLoader: new (container: any) => AdsLoaderType;
         ImaSdkSettings: new () => any;
         AdsRequest: new () => any;
+        AdEvent: { Type: { [key: string]: string } };
+        AdErrorEvent: { Type: { [key: string]: string } };
+        AdsManagerLoadedEvent: { Type: { [key: string]: string } };
+        ViewMode: { LINEAR: string; NONLINEAR: string };
       };
     };
   }
+}
+
+interface AdsLoaderType {
+  contentComplete(): void;
+  requestAds(adsRequest: any): void;
+  destroy(): void;
+  addEventListener(type: string, handler: Function): void;
+  removeEventListener(type: string, handler: Function): void;
 }
 
 interface UseVastAdsProps {
