@@ -55,18 +55,36 @@ let imaScriptLoaded = false;
 let imaScriptLoadPromise: Promise<void> | null = null;
 
 function loadImaScript(): Promise<void> {
-  if (imaScriptLoaded) return Promise.resolve();
-  if (imaScriptLoadPromise) return imaScriptLoadPromise;
+  if (imaScriptLoaded) {
+    console.log("[IMA] Script already loaded");
+    return Promise.resolve();
+  }
+  if (imaScriptLoadPromise) {
+    console.log("[IMA] Script loading in progress");
+    return imaScriptLoadPromise;
+  }
+
+  console.log("[IMA] Starting script load from CDN");
 
   imaScriptLoadPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     script.src = "https://imasdk.googleapis.com/js/sdkloader/ima3.js";
     script.async = true;
     script.onload = () => {
+      console.log("[IMA] Script loaded successfully");
       imaScriptLoaded = true;
+
+      // Check if google.ima is available
+      if (window.google?.ima) {
+        console.log("[IMA] google.ima is available", Object.keys(window.google.ima));
+      } else {
+        console.warn("[IMA] google.ima not found after script load");
+      }
+
       resolve();
     };
-    script.onerror = () => {
+    script.onerror = (error) => {
+      console.error("[IMA] Failed to load IMA SDK script", error);
       reject(new Error("Failed to load IMA SDK script"));
     };
     document.head.appendChild(script);
