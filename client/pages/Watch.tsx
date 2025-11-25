@@ -5,9 +5,13 @@ import { useVastAds } from "@/hooks/use-vast-ads";
 import { toast as showToast } from "@/hooks/use-toast";
 
 export default function WatchPage() {
+  console.log("[Watch] Component mounted");
+
   const navigate = useNavigate();
   const params = useParams();
   const videoId = params.id ? decodeURIComponent(params.id) : "";
+
+  console.log("[Watch] Video ID:", videoId);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const adContainerRef = useRef<HTMLDivElement | null>(null);
