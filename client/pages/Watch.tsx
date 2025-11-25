@@ -145,6 +145,11 @@ export default function WatchPage() {
     <div className="fixed inset-0 z-50 flex flex-col bg-black">
       {source ? (
         <>
+          <div
+            ref={adContainerRef}
+            className="absolute inset-0 w-full h-full pointer-events-none"
+            style={{ zIndex: 40 }}
+          />
           <video
             ref={videoRef}
             key={video.id}
