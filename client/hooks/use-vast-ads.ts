@@ -111,33 +111,42 @@ export function useVastAds({
   const [isPlayingAd, setIsPlayingAd] = useState(false);
 
   useEffect(() => {
-    if (!videoRef.current || !containerRef.current) return;
+    console.log("[VAST] useVastAds effect triggered");
+    if (!videoRef.current || !containerRef.current) {
+      console.warn("[VAST] Missing video or container ref");
+      return;
+    }
 
     const initializeAds = async () => {
       try {
+        console.log("[VAST] Initializing ads");
         await loadImaScript();
 
         const google = window.google;
         if (!google?.ima) {
-          throw new Error("Google IMA SDK not available");
+          throw new Error("Google IMA SDK not available after load");
         }
 
+        console.log("[VAST] Creating AdDisplayContainer");
         // Create ad display container
         adDisplayContainerRef.current = new google.ima.AdDisplayContainer(
-          containerRef.current,
-          videoRef.current,
+          containerRef.current!,
+          videoRef.current!,
         );
 
         // Initialize SDK settings
+        console.log("[VAST] Creating ImaSdkSettings");
         const settings = new google.ima.ImaSdkSettings();
         settings.setAutoPlayAdBreaks(false);
 
         // Create ads loader
+        console.log("[VAST] Creating AdsLoader");
         adsLoaderRef.current = new google.ima.AdsLoader(
           adDisplayContainerRef.current,
         );
 
         // Set up event listeners for ads loader
+        console.log("[VAST] Adding event listeners");
         adsLoaderRef.current.addEventListener(
           google.ima.AdsManagerLoadedEvent.Type.ADS_MANAGER_LOADED,
           onAdsManagerLoaded,
@@ -148,9 +157,11 @@ export function useVastAds({
           onAdLoaderError,
         );
 
+        console.log("[VAST] Ads initialized successfully");
         setAdsInitialized(true);
 
         // Request pre-roll ads
+        console.log("[VAST] Requesting pre-roll ads");
         requestAds(true);
 
         // Handle mid-roll ads at 50% video duration
