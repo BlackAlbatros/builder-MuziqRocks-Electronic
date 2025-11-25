@@ -31,19 +31,6 @@ export function buildVastUrl(params: VastUrlParams = {}): string {
   // Use the VAST URL from the feed, or fall back to a default
   let vastUrl = params.baseVastUrl || "https://vast.engagemediatv.com/?channel=8bd6fca2&publisher=a8ce40dc";
 
-  // Add device parameters
-  urlParams.append("width", String(params.width || window.innerWidth));
-  urlParams.append("height", String(params.height || window.innerHeight));
-  urlParams.append("appName", params.appName || "MuziqRocks");
-  urlParams.append("appBundle", params.appBundle || "rocks.muziq.electronic");
-  urlParams.append("appURL", params.appURL || window.location.origin);
-  urlParams.append("app_category", params.appCategory || "music");
-  urlParams.append("appUid", params.appUid || generateDeviceId());
-  urlParams.append("pubId", params.pubId || "muziq_rocks");
-
-  // Geographic parameters
-  urlParams.append("country", params.country || "US");
-
   // Prepare replacement values for placeholder tags
   const width = String(params.width || window.innerWidth);
   const height = String(params.height || window.innerHeight);
