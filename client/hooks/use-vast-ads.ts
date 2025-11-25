@@ -47,15 +47,8 @@ interface AdsManager {
   resume(): void;
   destroy(): void;
   getRemainingTime(): number;
-  on(type: string, handler: Function): void;
+  addEventListener(type: string, handler: Function): void;
   removeEventListener(type: string, handler: Function): void;
-}
-
-interface AdsLoader {
-  contentComplete(): void;
-  requestAds(adsRequest: any): void;
-  destroy(): void;
-  on(type: string, handler: Function): void;
 }
 
 let imaScriptLoaded = false;
