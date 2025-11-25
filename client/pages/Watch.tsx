@@ -14,7 +14,6 @@ export default function WatchPage() {
   console.log("[Watch] Video ID:", videoId);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const adContainerRef = useRef<HTMLDivElement | null>(null);
   const homeLinkRef = useRef<HTMLAnchorElement | null>(null);
   const videoStateRef = useRef<{ wasPlaying: boolean; wasMuted: boolean }>({
     wasPlaying: false,
