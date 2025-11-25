@@ -272,12 +272,13 @@ export function useVastAds({
   };
 
   const onAdLoaderError = (event: any) => {
-    console.error("Ad loader error:", event);
-    onAdError?.(event.getError());
+    const error = event.getError?.();
+    console.error("[VAST] Ad loader error:", error || event);
+    onAdError?.(error || event);
   };
 
   const onAdManagerError = (event: any) => {
-    console.error("Ad manager error:", event);
+    console.error("[VAST] Ad manager error:", event);
     onAdError?.(event);
   };
 
