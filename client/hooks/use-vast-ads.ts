@@ -171,46 +171,49 @@ export function useVastAds({
 
   const onAdsManagerLoaded = (event: any) => {
     try {
-      const adsManager = event.getAdsManager(
-        videoRef.current,
-        new (window.google!.ima as any).ViewMode.LINEAR,
-      );
+      const google = window.google!.ima;
+      const viewMode = (google as any).ViewMode?.LINEAR || "linear";
+
+      const adsManager = event.getAdsManager(videoRef.current, viewMode);
 
       adsManagerRef.current = adsManager;
 
       // Set up ads manager event listeners
-      adsManager.addEventListener(
-        (window.google!.ima as any).AdEvent.Type.STARTED,
-        () => {
+      const adEventType = (google as any).AdEvent?.Type;
+      const adErrorType = (google as any).AdErrorEvent?.Type;
+
+      if (adEventType?.STARTED) {
+        adsManager.addEventListener(adEventType.STARTED, () => {
           setIsPlayingAd(true);
-        },
-      );
+        });
+      }
 
-      adsManager.addEventListener(
-        (window.google!.ima as any).AdEvent.Type.COMPLETE,
-        () => {
+      if (adEventType?.COMPLETE) {
+        adsManager.addEventListener(adEventType.COMPLETE, () => {
           setIsPlayingAd(false);
-        },
-      );
+        });
+      }
 
-      adsManager.addEventListener(
-        (window.google!.ima as any).AdEvent.Type.ALL_ADS_COMPLETED,
-        () => {
+      if (adEventType?.ALL_ADS_COMPLETED) {
+        adsManager.addEventListener(adEventType.ALL_ADS_COMPLETED, () => {
           setIsPlayingAd(false);
-        },
-      );
+        });
+      }
 
-      adsManager.addEventListener(
-        (window.google!.ima as any).AdErrorEvent.Type.AD_ERROR,
-        onAdManagerError,
-      );
+      if (adErrorType?.AD_ERROR) {
+        adsManager.addEventListener(adErrorType.AD_ERROR, onAdManagerError);
+      }
 
       // Initialize the ads manager
-      adsManager.init(
-        videoRef.current!.clientWidth,
-        videoRef.current!.clientHeight,
-        (window.google!.ima as any).ViewMode.LINEAR,
-      );
+      try {
+        adsManager.init(
+          videoRef.current!.clientWidth,
+          videoRef.current!.clientHeight,
+          viewMode,
+        );
+      } catch (error) {
+        console.warn("Error initializing ads manager:", error);
+      }
 
       // Start playing ads
       try {
