@@ -29,7 +29,9 @@ export function buildVastUrl(params: VastUrlParams = {}): string {
   console.log("[VAST URL Builder] Building VAST URL with params:", params);
 
   // Use the VAST URL from the feed, or fall back to a default
-  let vastUrl = params.baseVastUrl || "https://vast.engagemediatv.com/?channel=8bd6fca2&publisher=a8ce40dc";
+  let vastUrl =
+    params.baseVastUrl ||
+    "https://vast.engagemediatv.com/?channel=8bd6fca2&publisher=a8ce40dc";
 
   // Prepare replacement values for placeholder tags
   const width = String(params.width || window.innerWidth);
@@ -50,7 +52,10 @@ export function buildVastUrl(params: VastUrlParams = {}): string {
     .replace(/\[HEIGHT\]/g, height)
     .replace(/\[APP_NAME\]/g, params.appName || "MuziqRocks")
     .replace(/\[APP_BUNDLE_ID\]/g, params.appBundle || "rocks.muziq.electronic")
-    .replace(/\[APP_STORE_URL\]/g, encodeURIComponent(params.appURL || window.location.origin))
+    .replace(
+      /\[APP_STORE_URL\]/g,
+      encodeURIComponent(params.appURL || window.location.origin),
+    )
     .replace(/\[APP_CATEGORY\]/g, params.appCategory || "music")
     .replace(/\[APP_ID\]/g, deviceId)
     .replace(/\[PUBID\]/g, params.pubId || "muziq_rocks")

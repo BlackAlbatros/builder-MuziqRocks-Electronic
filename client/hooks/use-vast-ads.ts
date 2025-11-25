@@ -76,7 +76,10 @@ function loadImaScript(): Promise<void> {
 
       // Check if google.ima is available
       if (window.google?.ima) {
-        console.log("[IMA] google.ima is available", Object.keys(window.google.ima));
+        console.log(
+          "[IMA] google.ima is available",
+          Object.keys(window.google.ima),
+        );
       } else {
         console.warn("[IMA] google.ima not found after script load");
       }
@@ -283,7 +286,9 @@ export function useVastAds({
   };
 
   const requestAds = (isPreRoll: boolean) => {
-    console.log(`[VAST] requestAds called for ${isPreRoll ? "pre-roll" : "mid-roll"}`);
+    console.log(
+      `[VAST] requestAds called for ${isPreRoll ? "pre-roll" : "mid-roll"}`,
+    );
 
     if (!adsLoaderRef.current || !adDisplayContainerRef.current) {
       console.warn("[VAST] Ads loader or container not initialized");

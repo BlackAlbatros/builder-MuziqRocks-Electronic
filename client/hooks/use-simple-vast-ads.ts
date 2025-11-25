@@ -86,7 +86,14 @@ export function useSimpleVastAds({
     };
 
     initializeAds();
-  }, [videoRef, onPreRollStart, onPreRollEnd, onMidRollStart, onMidRollEnd, onAdError]);
+  }, [
+    videoRef,
+    onPreRollStart,
+    onPreRollEnd,
+    onMidRollStart,
+    onMidRollEnd,
+    onAdError,
+  ]);
 
   const playAd = async (ad: VastAd) => {
     if (!videoRef.current) return;
@@ -184,7 +191,9 @@ export function useSimpleVastAds({
   };
 
   const requestAds = async (isPreRoll: boolean) => {
-    console.log(`[SimpleVAST] Requesting ${isPreRoll ? "pre-roll" : "mid-roll"} ads`);
+    console.log(
+      `[SimpleVAST] Requesting ${isPreRoll ? "pre-roll" : "mid-roll"} ads`,
+    );
 
     try {
       const vastUrl = buildVastUrl(vastUrlParams);

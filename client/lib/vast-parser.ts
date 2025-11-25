@@ -27,7 +27,7 @@ export interface VastResponse {
 
 async function fetchVastXml(vastUrl: string): Promise<Document> {
   console.log("[VAST Parser] Fetching VAST from:", vastUrl);
-  
+
   try {
     const response = await fetch(vastUrl);
     if (!response.ok) {
@@ -36,7 +36,7 @@ async function fetchVastXml(vastUrl: string): Promise<Document> {
 
     const text = await response.text();
     console.log("[VAST Parser] Received VAST response, length:", text.length);
-    
+
     const parser = new DOMParser();
     const doc = parser.parseFromString(text, "application/xml");
 
@@ -51,10 +51,7 @@ async function fetchVastXml(vastUrl: string): Promise<Document> {
   }
 }
 
-function extractTrackingPixels(
-  element: Element,
-  tagName: string,
-): string[] {
+function extractTrackingPixels(element: Element, tagName: string): string[] {
   const urls: string[] = [];
   const elements = element.getElementsByTagName(tagName);
 
