@@ -2,6 +2,7 @@
  * Builds a VAST URL with parameters filled in from device and video metadata
  */
 export interface VastUrlParams {
+  baseVastUrl?: string; // VAST URL from feed (with placeholder tags)
   width?: number;
   height?: number;
   appName?: string;
@@ -24,17 +25,11 @@ export interface VastUrlParams {
   gdprConsent?: string;
 }
 
-const BASE_VAST_URL =
-  "https://vast.engagemediatv.com/?channel=8bd6fca2&publisher=a8ce40dc";
-
 export function buildVastUrl(params: VastUrlParams = {}): string {
   console.log("[VAST URL Builder] Building VAST URL with params:", params);
 
-  const urlParams = new URLSearchParams();
-
-  // Add base parameters
-  urlParams.append("channel", "8bd6fca2");
-  urlParams.append("publisher", "a8ce40dc");
+  // Use the VAST URL from the feed, or fall back to a default
+  let vastUrl = params.baseVastUrl || "https://vast.engagemediatv.com/?channel=8bd6fca2&publisher=a8ce40dc";
 
   // Add device parameters
   urlParams.append("width", String(params.width || window.innerWidth));
