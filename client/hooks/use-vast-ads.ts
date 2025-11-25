@@ -172,7 +172,15 @@ export function useVastAds({
     };
 
     initializeAds();
-  }, [videoRef, containerRef, onPreRollStart, onPreRollEnd, onMidRollStart, onMidRollEnd, onAdError]);
+  }, [
+    videoRef,
+    containerRef,
+    onPreRollStart,
+    onPreRollEnd,
+    onMidRollStart,
+    onMidRollEnd,
+    onAdError,
+  ]);
 
   const onAdsManagerLoaded = (event: any) => {
     try {

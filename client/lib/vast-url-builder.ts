@@ -39,10 +39,7 @@ export function buildVastUrl(params: VastUrlParams = {}): string {
   urlParams.append("height", String(params.height || window.innerHeight));
   urlParams.append("appName", params.appName || "MuziqRocks");
   urlParams.append("appBundle", params.appBundle || "rocks.muziq.electronic");
-  urlParams.append(
-    "appURL",
-    params.appURL || window.location.origin,
-  );
+  urlParams.append("appURL", params.appURL || window.location.origin);
   urlParams.append("app_category", params.appCategory || "music");
   urlParams.append("appUid", params.appUid || generateDeviceId());
   urlParams.append("pubId", params.pubId || "muziq_rocks");
